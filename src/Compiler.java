@@ -1,11 +1,19 @@
+import java.io.IOException;
+
+import parser.Parser;
 
 public class Compiler {
 	
-	public Compiler(String string) {
-		// TODO Auto-generated constructor stub
+	private String fileName;
+	
+	public Compiler(String fileName) {
+		this.fileName = fileName;
 	}
 
-	public void run() {
-		
+	public void run() throws IOException {
+		Parser parser = new Parser(fileName);
+		parser.run();
 	}
+	
+	
 }
