@@ -166,7 +166,8 @@ public class Lexer {
 		reserveWord(new Word("begin", Tag.BEGIN));
 		reserveWord(new Word("do", Tag.DO));
 		reserveWord(new Word("else", Tag.ELSE));
-		reserveWord(new Word("if", Tag.INIT));
+		reserveWord(new Word("if", Tag.IF));
+		reserveWord(new Word("init", Tag.INIT));
 		reserveWord(new Word("integer", Tag.INTEGER));
 		reserveWord(new Word("is", Tag.IS));
 		reserveWord(new Word("not", Tag.NOT));
