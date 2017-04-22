@@ -4,6 +4,9 @@ import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Enumeration;
 import java.util.Hashtable;
 
@@ -24,12 +27,19 @@ public class Lexer {
 	}
         
         public void printHashtable() {
-            System.out.println("\n\tTABELA DE SÍMBOLOS");
+            System.out.println("\n\tTABELA DE SÍMBOLOS\n\tLEXEMA\t\tTAG");
             Enumeration<Word> list = words.elements();
+            ArrayList<Word> listSorted = new ArrayList<Word>();
             
             for (int i = 0; i < words.size(); i++) {
                 Word element = list.nextElement();
-                System.out.println(element.toString());
+                listSorted.add(element);
+            }
+            
+            Collections.sort(listSorted);
+            
+            for (int i = 0; i < listSorted.size(); i++) {
+                System.out.println("\t" + listSorted.get(i) + "\t\t" + listSorted.get(i).getTag());
             }
         }
 
@@ -46,7 +56,7 @@ public class Lexer {
 			} else if (c == '\n') {
                                 readCharacter();
 				// checks new line
-				line++;
+				line++; 
 			} else if (c == '/') {
 				// checks one line comments
 				if (readCharacter('/')) {
@@ -134,8 +144,16 @@ public class Lexer {
                         }
                         
                 case Tag.QUOTE:
+                        StringBuffer stringBuffer = new StringBuffer();
+
+                        stringBuffer.append('"');
+			while (!readCharacter((char) Tag.QUOTE) && c != '\n' && c != '"'){
+				stringBuffer.append(c);
+			};
+                        stringBuffer.append('"');
+                        
                         c = ' ';
-                        return Word.quote;
+                        return new Word(stringBuffer.toString(), Tag.LITERAL);
 		}
 
 		// checks non-identified characters
@@ -163,16 +181,21 @@ public class Lexer {
 	}
 
 	private void reserveWords() {
+		reserveWord(new Word("and", Tag.AND));
 		reserveWord(new Word("begin", Tag.BEGIN));
 		reserveWord(new Word("do", Tag.DO));
 		reserveWord(new Word("else", Tag.ELSE));
+		reserveWord(new Word("end", Tag.END));
 		reserveWord(new Word("if", Tag.IF));
 		reserveWord(new Word("init", Tag.INIT));
 		reserveWord(new Word("integer", Tag.INTEGER));
 		reserveWord(new Word("is", Tag.IS));
 		reserveWord(new Word("not", Tag.NOT));
+		reserveWord(new Word("or", Tag.OR));
+		reserveWord(new Word("read", Tag.READ));
 		reserveWord(new Word("stop", Tag.STOP));
 		reserveWord(new Word("string", Tag.STRING));
 		reserveWord(new Word("while", Tag.WHILE));
+		reserveWord(new Word("write", Tag.WRITE));
 	}
 }

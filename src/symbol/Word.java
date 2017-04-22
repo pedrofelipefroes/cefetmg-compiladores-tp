@@ -1,6 +1,6 @@
 package symbol;
 
-public class Word extends Token {
+public class Word extends Token implements Comparable<Word> {
 	private String lexem = "";
 	public static final Word
 		assign = new Word(":=", Tag.ASSIGN),
@@ -20,6 +20,12 @@ public class Word extends Token {
 		super(tag);
 		this.lexem = word;
 	}
+
+        @Override
+        public int compareTo(Word word)
+        {
+            return this.getTag() - word.getTag();
+        }
 	
 	@Override
 	public String toString() {
