@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.Enumeration;
 import java.util.Hashtable;
 
 import symbol.*;
@@ -21,33 +22,45 @@ public class Lexer {
 
 		reserveWords();
 	}
+        
+        public void printHashtable() {
+            System.out.println("\n\tTABELA DE SÍMBOLOS");
+            Enumeration<Word> list = words.elements();
+            
+            for (int i = 0; i < words.size(); i++) {
+                Word element = list.nextElement();
+                System.out.println(element.toString());
+            }
+        }
 
 	public Token run(String fileName) throws IOException {
 
 		// checks non-token characters
 		while (true) {
-			readCharacter();
-
 			if (c == Tag.EOF) {
 				return Word.eof;
 			} else if (c == ' ' || c == '\t' || c == '\r' || c == '\b') {
 				// checks blank and tab spaces
+                                readCharacter();
 				continue;
 			} else if (c == '\n') {
+                                readCharacter();
 				// checks new line
 				line++;
 			} else if (c == '/') {
 				// checks one line comments
 				if (readCharacter('/')) {
-					while (!readCharacter('\n'))
-						;
+					while (!readCharacter('\n'));
 				} else {
-					break;
+                                        return new Token('/');
 				}
 			} else if (c == '{') {
 				// checks block comments
-				while (!readCharacter('}'))
-					;
+                                while(c != '}' && c != Tag.EOF) {
+                                    readCharacter();
+                                }
+                                if (c == Tag.EOF)
+                                    return Word.eof;
 			} else {
 				break;
 			}
@@ -60,16 +73,16 @@ public class Lexer {
 			do {
 				stringBuffer.append(c);
 				readCharacter();
-			} while (Character.isLetterOrDigit(c));
+			} while (Character.isLetterOrDigit(c) || c == '_');
 
 			String string = stringBuffer.toString();
-			Word word = (Word) words.get(string);
+			Word word = (Word) words.get(string.toLowerCase());
 
 			if (word != null)
 				return word; // word is already present in Hash Table words
 
 			// word is not present in Hash Table words
-			word = new Word(string, Tag.ID);
+			word = new Word(string.toLowerCase(), Tag.ID);
 			words.put(string, word);
 
 			return word;
@@ -90,25 +103,39 @@ public class Lexer {
 		// checks numeric and relational operators
 		switch (c) {
 		case ':':
-			if (readCharacter('='))
+			if (readCharacter('=')) {
+                                c = ' ';
 				return Word.assign;
+                        } else {
+                                return new Token(':');
+                        }
 
 		case '=':
+                        c = ' ';
 			return Word.equal;
 
 		case '>':
-			if (readCharacter('='))
+			if (readCharacter('=')) {
+                                c = ' ';
 				return Word.greater_equal;
-			else
+                        } else {
 				return Word.greater;
+                        }
 
 		case '<':
-			if (readCharacter('='))
+			if (readCharacter('=')) {
+                                c = ' ';
 				return Word.lower_equal;
-			else if (readCharacter('>'))
+                        } else if (readCharacter('>')) {
+                                c = ' ';
 				return Word.not_equal;
-			else
+                        } else {
 				return Word.lower;
+                        }
+                        
+                case Tag.QUOTE:
+                        c = ' ';
+                        return Word.quote;
 		}
 
 		// checks non-identified characters

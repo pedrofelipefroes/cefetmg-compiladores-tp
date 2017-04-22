@@ -23,10 +23,12 @@ public class Parser {
 	private void getToken() throws IOException {
 		Token token = lexer.run(fileName);
 
+                System.out.println("\tTOKENS LIDOS");
 		while (!token.toString().equals("EOF")) {
 			System.out.println(token);
 			token = lexer.run(fileName);
 		}
+                lexer.printHashtable();
 	}
 
 }

@@ -12,7 +12,9 @@ public class Word extends Token {
 		lower = new Word("<", Tag.LOWER),
 		lower_equal = new Word("<=", Tag.LOWER_EQUAL),
 		not_equal = new Word("<>", Tag.NOT_EQUAL),
-		or = new Word("or", Tag.OR);
+		or = new Word("or", Tag.OR),
+                quote = new Word(String.valueOf('"'), Tag.QUOTE);
+                
 		
 	public Word(String word, int tag) {
 		super(tag);
