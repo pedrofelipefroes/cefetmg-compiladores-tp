@@ -43,7 +43,7 @@ public class Lexer {
             }
         }
 
-	public Token run(String fileName) throws IOException {
+	public Token run(String fileName) {
 
 		// checks non-token characters
 		while (true) {
@@ -162,11 +162,15 @@ public class Lexer {
 		return token;
 	}
 
-	private void readCharacter() throws IOException {
+	private void readCharacter() {
+            try {
 		c = (char) bufferedReader.read();
+            } catch (Exception e) {
+                System.out.println("Erro na leitura do arquivo!");
+            }
 	}
 
-	private boolean readCharacter(char c) throws IOException {
+	private boolean readCharacter(char c) {
 		readCharacter();
 
 		if (this.c != c)
