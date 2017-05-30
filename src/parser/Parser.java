@@ -215,25 +215,10 @@ public class Parser {
     public void condition() {
         switch (token.getTag()) {
             case Tag.INTEGER:
-                expression();
-                break;
-
             case Tag.ID:
-                expression();
-                break;
-
             case Tag.NOT:
-                expression();
-                break;
-
             case Tag.QUOTE:
-                expression();
-                break;
-
             case Tag.PAR_OPEN:
-                expression();
-                break;
-
             case Tag.SUBTRACT:
                 expression();
                 break;
