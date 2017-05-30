@@ -93,7 +93,7 @@ public class Parser {
         switch (token.getTag()) {
             case Tag.ID:
                 identifier();
-                while (token.getTag() == Tag.DOT_COM) {
+                while (token.getTag() == Tag.COM) {
                     eat(Tag.DOT_COM);
                     identifier();
                 }
