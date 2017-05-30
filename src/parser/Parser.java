@@ -94,7 +94,7 @@ public class Parser {
             case Tag.ID:
                 identifier();
                 while (token.getTag() == Tag.COM) {
-                    eat(Tag.DOT_COM);
+                    eat(Tag.COM);
                     identifier();
                 }
                 break;
