@@ -263,7 +263,7 @@ public class Parser {
             case Tag.READ:
                 eat(Tag.READ);
                 eat(Tag.PAR_OPEN);
-                condition();
+                identifier();
                 eat(Tag.PAR_CLOSE);
                 break;
 
