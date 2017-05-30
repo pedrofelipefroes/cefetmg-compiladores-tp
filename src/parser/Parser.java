@@ -152,15 +152,12 @@ public class Parser {
                 break;
 
             case Tag.BEGIN:
+            case Tag.IF:
                 ifStmt();
                 break;
 
             case Tag.DO:
                 doStmt();
-                break;
-
-            case Tag.IF:
-                ifStmt();
                 break;
 
             case Tag.READ:
