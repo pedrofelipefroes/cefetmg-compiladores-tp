@@ -124,54 +124,16 @@ public class Parser {
     public void stmtList() {
         switch (token.getTag()) {
             case Tag.ID:
-                stmt();
-                eat(Tag.DOT_COM);
-                while (token.getTag() == Tag.DOT_COM) {
-                    stmt();
-                    eat(Tag.DOT_COM);
-                }
-                break;
-
             case Tag.BEGIN:
-                stmt();
-                eat(Tag.DOT_COM);
-                while (token.getTag() == Tag.DOT_COM) {
-                    stmt();
-                    eat(Tag.DOT_COM);
-                }
-                break;
-
             case Tag.DO:
-                stmt();
-                eat(Tag.DOT_COM);
-                while (token.getTag() == Tag.DOT_COM) {
-                    stmt();
-                    eat(Tag.DOT_COM);
-                }
-                break;
-
             case Tag.IF:
-                stmt();
-                eat(Tag.DOT_COM);
-                while (token.getTag() == Tag.DOT_COM) {
-                    stmt();
-                    eat(Tag.DOT_COM);
-                }
-                break;
-
             case Tag.READ:
-                stmt();
-                eat(Tag.DOT_COM);
-                while (token.getTag() == Tag.DOT_COM) {
-                    stmt();
-                    eat(Tag.DOT_COM);
-                }
-                break;
-
             case Tag.WRITE:
                 stmt();
                 eat(Tag.DOT_COM);
-                while (token.getTag() == Tag.DOT_COM) {
+                //Conjunto FIRST de um stmt
+                while (token.getTag() == Tag.ID || token.getTag() == Tag.IF || token.getTag() == Tag.BEGIN ||
+                       token.getTag() == Tag.DO || token.getTag() == Tag.READ || token.getTag() == Tag.WRITE) {
                     stmt();
                     eat(Tag.DOT_COM);
                 }
