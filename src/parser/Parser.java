@@ -329,30 +329,10 @@ public class Parser {
     public void simpleExpr() {
         switch (token.getTag()) {
             case Tag.INTEGER:
-                term();
-                simpleExprZ();
-                break;
-
             case Tag.ID:
-                term();
-                simpleExprZ();
-                break;
-
             case Tag.NOT:
-                term();
-                simpleExprZ();
-                break;
-
             case Tag.QUOTE:
-                term();
-                simpleExprZ();
-                break;
-
             case Tag.PAR_OPEN:
-                term();
-                simpleExprZ();
-                break;
-
             case Tag.SUBTRACT:
                 term();
                 simpleExprZ();
@@ -367,41 +347,19 @@ public class Parser {
     public void simpleExprZ() {
         switch (token.getTag()) {
             case Tag.OR:
-                addop();
-                term();
-                simpleExprZ();
-                break;
-
-            case Tag.PAR_CLOSE:
-                break;
-
             case Tag.SUM:
-                addop();
-                term();
-                simpleExprZ();
-                break;
-
             case Tag.SUBTRACT:
                 addop();
                 term();
                 simpleExprZ();
                 break;
 
+            case Tag.PAR_CLOSE:
             case Tag.EQUAL:
-                break;
-
             case Tag.GREATER:
-                break;
-
             case Tag.GREATER_EQUAL:
-                break;
-
             case Tag.LOWER:
-                break;
-
             case Tag.LOWER_EQUAL:
-                break;
-
             case Tag.NOT_EQUAL:
                 break;
 
