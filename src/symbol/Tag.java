@@ -2,8 +2,8 @@ package symbol;
 
 public class Tag {
     public final static int
-            // auxiliary symbols
-            ASSIGN = 256, COM = 257, DOT_COM = 258, PAR_OPEN = 259, PAR_CLOSE = 260, QUOTE = 65533,
+    // auxiliary symbols
+    ASSIGN = 256, COM = ',', DOT_COM = ';', PAR_OPEN = '(', PAR_CLOSE = ')', QUOTE = 65533,
 
     // end of file
     EOF = 65535,

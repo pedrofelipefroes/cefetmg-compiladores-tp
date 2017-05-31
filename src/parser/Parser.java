@@ -591,13 +591,13 @@ public class Parser {
                 while (token.getTag() == Tag.ID) {
                     letter();
                 }
-                while (token.getTag() == (Tag.ID || Tag.INTEGER || Tag.COMMA)) {
+                while (token.getTag() == Tag.ID || token.getTag() == Tag.INTEGER || token.getTag() == '_') {
                     if (token.getTag() == Tag.ID) {
                         letter();
                     } else if (token.getTag() == Tag.INTEGER) {
                         digit();
                     } else {
-                        eat(Tag.COM);
+                        eat('_');
                     }
                 }
                 break;
@@ -611,7 +611,7 @@ public class Parser {
     public void letter() {
         switch (token.getTag()) {
             case Tag.ID:
-                eat(Tag.LITERAL);
+                eat(Tag.ID);
                 break;
 
             default:
