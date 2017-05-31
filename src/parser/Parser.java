@@ -400,6 +400,7 @@ public class Parser {
             case Tag.LOWER:
             case Tag.LOWER_EQUAL:
             case Tag.NOT_EQUAL:
+            case Tag.DOT_COM: //TO-DO: Conferir lista de Follow(simpleExprZ)
                 break;
 
             default:
@@ -445,6 +446,7 @@ public class Parser {
             case Tag.LOWER:
             case Tag.LOWER_EQUAL:
             case Tag.NOT_EQUAL:
+            case Tag.DOT_COM: // TO-DO: Conferir lista de Follow(termZ)
                 break;
 
             default:
