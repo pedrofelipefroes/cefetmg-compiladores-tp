@@ -308,49 +308,13 @@ public class Parser {
     public void expression() {
         switch (token.getTag()) {
             case Tag.INTEGER:
-                simpleExpr();
-                if ((token.getTag() >= Tag.EQUAL) || (token.getTag() <= Tag.NOT_EQUAL)
-                        || (token.getTag() == (Tag.GREATER || Tag.GREATER_EQUAL || Tag.LOWER || Tag.LOWER_EQUAL || Tag.NOT_EQUAL))) {
-                    relop();
-                    simpleExpr();
-                }
-                break;
-
             case Tag.ID:
-                simpleExpr();
-                if (token.getTag() == (Tag.EQUAL || Tag.GREATER || Tag.GREATER_EQUAL || Tag.LOWER || Tag.LOWER_EQUAL || Tag.NOT_EQUAL)) {
-                    relop();
-                    simpleExpr();
-                }
-                break;
-
             case Tag.NOT:
-                simpleExpr();
-                if (token.getTag() == (Tag.EQUAL || Tag.GREATER || Tag.GREATER_EQUAL || Tag.LOWER || Tag.LOWER_EQUAL || Tag.NOT_EQUAL)) {
-                    relop();
-                    simpleExpr();
-                }
-                break;
-
             case Tag.QUOTE:
-                simpleExpr();
-                if (token.getTag() == (Tag.EQUAL || Tag.GREATER || Tag.GREATER_EQUAL || Tag.LOWER || Tag.LOWER_EQUAL || Tag.NOT_EQUAL)) {
-                    relop();
-                    simpleExpr();
-                }
-                break;
-
             case Tag.PAR_OPEN:
-                simpleExpr();
-                if (token.getTag() == (Tag.EQUAL || Tag.GREATER || Tag.GREATER_EQUAL || Tag.LOWER || Tag.LOWER_EQUAL || Tag.NOT_EQUAL)) {
-                    relop();
-                    simpleExpr();
-                }
-                break;
-
             case Tag.SUBTRACT:
                 simpleExpr();
-                if (token.getTag() == (Tag.EQUAL || Tag.GREATER || Tag.GREATER_EQUAL || Tag.LOWER || Tag.LOWER_EQUAL || Tag.NOT_EQUAL)) {
+                if(token.getTag() >= Tag.EQUAL && token.getTag() <= Tag.NOT_EQUAL) {
                     relop();
                     simpleExpr();
                 }
