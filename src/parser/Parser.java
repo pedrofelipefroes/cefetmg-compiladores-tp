@@ -634,7 +634,7 @@ public class Parser {
 
     public void noZero() {
         switch (token.getTag()) {
-            case Tag.INTEGER:
+            case Tag.CONST_NOT_ZERO:
                 eat(Tag.CONST_NOT_ZERO); // TO-DO: criar tag no léxico
                 break;
 
