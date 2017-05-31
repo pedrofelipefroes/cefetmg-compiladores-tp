@@ -645,15 +645,15 @@ public class Parser {
     }
 
     public void caractere() {
-        switch (token.getTag()) {
-            case Tag.ID:
+        if (isAscii(token))
                 eat(Tag.ID);
-                // eat(Tag.CONST_ASCII); // TO-DO: criar tag e descomentar se for usar Tag.CONST_ASCII ao invés de Tag.ID;
-                break;
-
-            default:
+        else
                 error();
-                break;
         }
+    
+    public boolean isAscii(Token token) {
+        if(token.getTag() >= 0 && token.getTag() <= 127 && token.getTag() != (int) '"' && token.getTag() != (int) '\n')
+            return true;
+        return false;
     }
 }
