@@ -372,30 +372,10 @@ public class Parser {
     public void term() {
         switch (token.getTag()) {
             case Tag.INTEGER:
-                factorA();
-                termZ();
-                break;
-
             case Tag.ID:
-                factorA();
-                termZ();
-                break;
-
             case Tag.NOT:
-                factorA();
-                termZ();
-                break;
-
             case Tag.QUOTE:
-                factorA();
-                termZ();
-                break;
-
             case Tag.PAR_OPEN:
-                factorA();
-                termZ();
-                break;
-
             case Tag.SUBTRACT:
                 factorA();
                 termZ();
