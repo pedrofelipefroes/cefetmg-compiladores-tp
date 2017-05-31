@@ -86,8 +86,10 @@ public class Parser {
             case Tag.ID:
                 decl();
                 eat(Tag.DOT_COM, "declList");
-                decl();
-                eat(Tag.DOT_COM, "declList");
+                while(token.getTag() == Tag.ID) {
+                    decl();
+                    eat(Tag.DOT_COM, "declList");
+                }
                 break;
 
             default:
