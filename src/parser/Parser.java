@@ -559,7 +559,7 @@ public class Parser {
                 digit();
                 break;
 
-            case Tag.INTEGER:
+            case Tag.INTEGER: // TO-DO: comentar este case se os de cima funcionarem
                 noZero();
                 digit();
                 break;
