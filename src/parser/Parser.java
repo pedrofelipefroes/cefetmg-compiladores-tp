@@ -588,9 +588,6 @@ public class Parser {
         switch (token.getTag()) {
             case Tag.ID:
                 letter();
-                while (token.getTag() == Tag.ID) {
-                    letter();
-                }
                 while (token.getTag() == Tag.ID || token.getTag() == Tag.INTEGER || token.getTag() == '_') {
                     if (token.getTag() == Tag.ID) {
                         letter();
