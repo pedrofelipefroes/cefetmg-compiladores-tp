@@ -205,7 +205,7 @@ public class Parser {
 
     public void assignStmt() {
         switch (token.getTag()) {
-            case Tag.INTEGER:
+            case Tag.ID:
                 identifier();
                 eat(Tag.ASSIGN, "assignStmt");
                 simpleExpr();
@@ -609,7 +609,7 @@ public class Parser {
 
             case Tag.INTEGER: // TO-DO: comentar este case se os de cima funcionarem
                 noZero();
-                digit();
+                //digit();
                 break;
 
             default:
@@ -684,6 +684,10 @@ public class Parser {
 
     public void noZero() {
         switch (token.getTag()) {
+            case Tag.INTEGER:
+                eat(Tag.INTEGER, "noZero");
+                break;
+            
             case Tag.CONST_NOT_ZERO:
                 eat(Tag.CONST_NOT_ZERO, "noZero"); // TO-DO: criar tag no léxico
                 break;
