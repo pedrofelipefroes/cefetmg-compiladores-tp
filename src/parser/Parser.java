@@ -390,41 +390,19 @@ public class Parser {
     public void termZ() {
         switch (token.getTag()) {
             case Tag.AND:
-                mulop();
-                factorA();
-                termZ();
-                break;
-
-            case Tag.PAR_CLOSE:
-                break;
-
             case Tag.MULTIPLY:
-                mulop();
-                factorA();
-                termZ();
-                break;
-
             case Tag.DIVIDE:
                 mulop();
                 factorA();
                 termZ();
                 break;
 
+            case Tag.PAR_CLOSE:
             case Tag.EQUAL:
-                break;
-
             case Tag.GREATER:
-                break;
-
             case Tag.GREATER_EQUAL:
-                break;
-
             case Tag.LOWER:
-                break;
-
             case Tag.LOWER_EQUAL:
-                break;
-
             case Tag.NOT_EQUAL:
                 break;
 
