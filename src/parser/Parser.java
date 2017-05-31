@@ -291,25 +291,10 @@ public class Parser {
     public void writable() {
         switch (token.getTag()) {
             case Tag.INTEGER:
-                simpleExpr();
-                break;
-
             case Tag.ID:
-                simpleExpr();
-                break;
-
             case Tag.NOT:
-                simpleExpr();
-                break;
-
             case Tag.QUOTE:
-                simpleExpr();
-                break;
-
             case Tag.PAR_OPEN:
-                simpleExpr();
-                break;
-
             case Tag.SUBTRACT:
                 simpleExpr();
                 break;
