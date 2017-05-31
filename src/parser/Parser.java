@@ -278,7 +278,7 @@ public class Parser {
             case Tag.WRITE:
                 eat(Tag.WRITE);
                 eat(Tag.PAR_OPEN);
-                condition();
+                writable();
                 eat(Tag.PAR_CLOSE);
                 break;
 
