@@ -440,15 +440,12 @@ public class Parser {
     public void factor() {
         switch (token.getTag()) {
             case Tag.INTEGER:
+            case Tag.QUOTE:
                 constant();
                 break;
 
             case Tag.ID:
                 identifier();
-                break;
-
-            case Tag.QUOTE:
-                constant();
                 break;
 
             case Tag.PAR_OPEN:
