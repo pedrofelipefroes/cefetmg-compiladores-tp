@@ -415,22 +415,14 @@ public class Parser {
     public void factorA() {
         switch (token.getTag()) {
             case Tag.INTEGER:
-                factor();
-                break;
-
             case Tag.ID:
+            case Tag.QUOTE:
+            case Tag.PAR_OPEN:
                 factor();
                 break;
 
             case Tag.NOT:
                 eat(Tag.NOT);
-                factor();
-                break;
-
-            case Tag.QUOTE:
-                break;
-
-            case Tag.PAR_OPEN:
                 factor();
                 break;
 
