@@ -40,8 +40,8 @@ public class Parser {
     public void error(String name, int []tag) {
         System.out.print("Erro na linha " + Lexer.line + " no reconhecimento de " + name + ".\n\tToken esperado: "); 
         for(int i = 0; i < tag.length; i++)
-            System.out.println(Tag.getName(tag[i]) + " ");
-        System.out.println("\tPróximo token: '" + Tag.getName(token.getTag()) + "'.");
+            System.out.print(Tag.getName(tag[i]) + " ");
+        System.out.println("\n\tPróximo token: '" + Tag.getName(token.getTag()) + "'.");
         
         System.out.println("Modo pânico ativado!");
         
