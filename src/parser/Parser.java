@@ -80,10 +80,15 @@ public class Parser {
                     //Se o token seguinte for ',' ou 'is'
                     if(token.get(1).getTag() == Tag.COM || token.get(1).getTag() == Tag.IS) {
                         declList();
+                        stmtList();
+                        eat(Tag.STOP, "program");
                     //Se o token seguinte for ':='
                     } else if (token.get(1).getTag() == Tag.ASSIGN) {
                         stmtList();
                         eat(Tag.STOP, "program");
+                    } else {
+                        int []tags = {Tag.COM, Tag.IS, Tag.ASSIGN};
+                        error("program-case-init", tags);
                     }
                 }
                 break;
