@@ -14,6 +14,7 @@ public class Parser {
     private Lexer lexer;
     private Token token;
     private ArrayList<Follow> followList;
+    private boolean error = false;
 
     public Parser(String fileName) throws FileNotFoundException {
         this.fileName = fileName;
@@ -25,16 +26,13 @@ public class Parser {
     public void run() throws IOException {
         getToken();
         program();
+        
+        if(!error)
+            System.out.println("Programa executado sem erro sintático! :D");
     }
 
     private void getToken() {
-        // Token token = lexer.run(fileName);
-
-        // while (!token.toString().equals("EOF")) {
-        // System.out.println(token);
         token = lexer.run(fileName);
-        // }
-        // lexer.printHashtable();
     }
 
     public void error(String name, int []tag) {
@@ -44,12 +42,11 @@ public class Parser {
         System.out.println("\n\tPróximo token: '" + Tag.getName(token.getTag()) + "'.");
         
         System.out.println("Modo pânico ativado!");
-        
-        while(!Follow.isFollow(followList, name, token.getTag()) && token.getTag() != Tag.EOF) {
+        while(!Follow.isFollow(followList, name, token.getTag()) && token.getTag() != Tag.EOF) 
             getToken();
-        }
-        
         System.out.println("Modo pânico desativado!\n");
+        
+        error = true;
         
         if(token.getTag() == Tag.EOF)
             System.exit(0);
@@ -614,7 +611,8 @@ public class Parser {
 
             case Tag.CONST_NOT_ZERO:
                 noZero();
-                digit();
+                while(token.getTag() == Tag.CONST_NOT_ZERO || token.getTag() == Tag.CONST_ZERO)
+                    digit();
                 break;
 
             default:
