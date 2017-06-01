@@ -28,7 +28,9 @@ public class Parser {
         program();
         
         if(!error)
-            System.out.println("Programa executado sem erro sintático! :D");
+            System.out.println("Código compilado sem erro sintático! :D");
+        else
+            System.out.println("\nParece que há alguns erros sintáticos no código. :(");
     }
 
     private void getToken() {
@@ -191,7 +193,7 @@ public class Parser {
                 break;
 
             default:
-                int []tags = {Tag.ID, Tag.DO, Tag.READ, Tag.WRITE};
+                int []tags = {Tag.ID, Tag.IF, Tag.DO, Tag.READ, Tag.WRITE};
                 error("stmt", tags);
                 break;
         }
@@ -206,7 +208,7 @@ public class Parser {
                 break;
 
             default:
-                int []tags = {Tag.INTEGER};
+                int []tags = {Tag.ID};
                 error("assignStmt", tags);
                 break;
         }
@@ -250,7 +252,7 @@ public class Parser {
                 break;
 
             default:
-                int []tags = {Tag.INTEGER, Tag.ID, Tag.NOT, Tag.QUOTE, Tag.PAR_OPEN, Tag.SUBTRACT};
+                int []tags = {Tag.CONST_ZERO, Tag.CONST_NOT_ZERO, Tag.ID, Tag.NOT, Tag.QUOTE, Tag.PAR_OPEN, Tag.SUBTRACT};
                 error("condition", tags);
                 break;
         }
@@ -340,8 +342,8 @@ public class Parser {
 
     public void expression() {
         switch (token.getTag()) {
-        	case Tag.CONST_ZERO:
-        	case Tag.CONST_NOT_ZERO:
+            case Tag.CONST_ZERO:
+            case Tag.CONST_NOT_ZERO:
             case Tag.ID:
             case Tag.NOT:
             case Tag.QUOTE:
@@ -363,8 +365,8 @@ public class Parser {
 
     public void simpleExpr() {
         switch (token.getTag()) {
-        	case Tag.CONST_ZERO:
-        	case Tag.CONST_NOT_ZERO:
+            case Tag.CONST_ZERO:
+            case Tag.CONST_NOT_ZERO:
             case Tag.ID:
             case Tag.NOT:
             case Tag.QUOTE:
@@ -402,7 +404,7 @@ public class Parser {
                 break;
 
             default:
-                int []tags = {Tag.OR, Tag.SUM, Tag.SUBTRACT, Tag.PAR_CLOSE, Tag.EQUAL, Tag.GREATER, Tag.GREATER_EQUAL, Tag.LOWER, Tag.LOWER_EQUAL, Tag.NOT_EQUAL};
+                int []tags = {Tag.OR, Tag.SUM, Tag.SUBTRACT, Tag.PAR_CLOSE, Tag.EQUAL, Tag.GREATER, Tag.GREATER_EQUAL, Tag.LOWER, Tag.LOWER_EQUAL, Tag.NOT_EQUAL, Tag.DOT_COM};
                 error("simpleExprZ", tags);
                 break;
         }
@@ -410,8 +412,8 @@ public class Parser {
 
     public void term() {
         switch (token.getTag()) {
-        	case Tag.CONST_ZERO:
-        	case Tag.CONST_NOT_ZERO:
+            case Tag.CONST_ZERO:
+            case Tag.CONST_NOT_ZERO:
             case Tag.ID:
             case Tag.NOT:
             case Tag.QUOTE:
@@ -452,7 +454,7 @@ public class Parser {
                 break;
 
             default:
-                int []tags = {Tag.AND, Tag.MULTIPLY, Tag.DIVIDE, Tag.OR, Tag.PAR_CLOSE, Tag.SUM, Tag.SUBTRACT, Tag.EQUAL, Tag.GREATER, Tag.GREATER_EQUAL, Tag.LOWER, Tag.LOWER_EQUAL, Tag.NOT_EQUAL};
+                int []tags = {Tag.AND, Tag.MULTIPLY, Tag.DIVIDE, Tag.OR, Tag.PAR_CLOSE, Tag.SUM, Tag.SUBTRACT, Tag.EQUAL, Tag.GREATER, Tag.GREATER_EQUAL, Tag.LOWER, Tag.LOWER_EQUAL, Tag.NOT_EQUAL, Tag.DOT_COM};
                 error("termZ", tags);
                 break;
         }
@@ -487,8 +489,8 @@ public class Parser {
 
     public void factor() {
         switch (token.getTag()) {
-        	case Tag.CONST_ZERO:
-        	case Tag.CONST_NOT_ZERO:
+            case Tag.CONST_ZERO:
+            case Tag.CONST_NOT_ZERO:
             case Tag.QUOTE:
                 constant();
                 break;
@@ -597,7 +599,7 @@ public class Parser {
                 break;
 
             default:
-                int []tags = {Tag.INTEGER, Tag.QUOTE};
+                int []tags = {Tag.CONST_ZERO, Tag.CONST_NOT_ZERO, Tag.QUOTE};
                 error("constant", tags);
                 break;
         }
@@ -680,7 +682,7 @@ public class Parser {
                 break;
 
             default:
-                int []tags = {Tag.INTEGER};
+                int []tags = {Tag.CONST_ZERO, Tag.CONST_NOT_ZERO};
                 error("digit", tags);
                 break;
         }

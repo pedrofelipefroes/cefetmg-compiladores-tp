@@ -44,8 +44,7 @@ public class Follow
         followList.add(new Follow("declList"));
         Follow.addFollow(followList, "declList", Tag.ID);
         Follow.addFollow(followList, "declList", Tag.IF);
-        Follow.addFollow(followList, "declList", Tag.BEGIN);
-        Follow.addFollow(followList, "declList", Tag.WHILE);
+        Follow.addFollow(followList, "declList", Tag.DO);
         Follow.addFollow(followList, "declList", Tag.READ);
         Follow.addFollow(followList, "declList", Tag.WRITE);
         
@@ -117,6 +116,7 @@ public class Follow
         Follow.addFollow(followList, "term", Tag.SUM);
         Follow.addFollow(followList, "term", Tag.SUBTRACT);
         Follow.addFollow(followList, "term", Tag.OR);
+        Follow.addFollow(followList, "term", Tag.DOT_COM);
         Follow.addFollow(followList, "term", Tag.PAR_CLOSE);
         Follow.addFollow(followList, "term", Tag.EQUAL);
         Follow.addFollow(followList, "term", Tag.GREATER);
@@ -124,12 +124,12 @@ public class Follow
         Follow.addFollow(followList, "term", Tag.LOWER);
         Follow.addFollow(followList, "term", Tag.LOWER_EQUAL);
         Follow.addFollow(followList, "term", Tag.NOT_EQUAL);
-        Follow.addFollow(followList, "term", Tag.DOT_COM);
         
         followList.add(new Follow("termZ"));
         Follow.addFollow(followList, "termZ", Tag.SUM);
         Follow.addFollow(followList, "termZ", Tag.SUBTRACT);
         Follow.addFollow(followList, "termZ", Tag.OR);
+        Follow.addFollow(followList, "termZ", Tag.DOT_COM);
         Follow.addFollow(followList, "termZ", Tag.PAR_CLOSE);
         Follow.addFollow(followList, "termZ", Tag.EQUAL);
         Follow.addFollow(followList, "termZ", Tag.GREATER);
@@ -137,7 +137,6 @@ public class Follow
         Follow.addFollow(followList, "termZ", Tag.LOWER);
         Follow.addFollow(followList, "termZ", Tag.LOWER_EQUAL);
         Follow.addFollow(followList, "termZ", Tag.NOT_EQUAL);
-        Follow.addFollow(followList, "termZ", Tag.DOT_COM);
         
         followList.add(new Follow("factorA"));
         Follow.addFollow(followList, "factorA", Tag.MULTIPLY);
@@ -146,6 +145,7 @@ public class Follow
         Follow.addFollow(followList, "factorA", Tag.SUM);
         Follow.addFollow(followList, "factorA", Tag.SUBTRACT);
         Follow.addFollow(followList, "factorA", Tag.OR);
+        Follow.addFollow(followList, "factorA", Tag.DOT_COM);
         Follow.addFollow(followList, "factorA", Tag.PAR_CLOSE);
         Follow.addFollow(followList, "factorA", Tag.EQUAL);
         Follow.addFollow(followList, "factorA", Tag.GREATER);
@@ -153,7 +153,6 @@ public class Follow
         Follow.addFollow(followList, "factorA", Tag.LOWER);
         Follow.addFollow(followList, "factorA", Tag.LOWER_EQUAL);
         Follow.addFollow(followList, "factorA", Tag.NOT_EQUAL);
-        Follow.addFollow(followList, "factorA", Tag.DOT_COM);
         
         followList.add(new Follow("factor"));
         Follow.addFollow(followList, "factor", Tag.MULTIPLY);
@@ -162,6 +161,7 @@ public class Follow
         Follow.addFollow(followList, "factor", Tag.SUM);
         Follow.addFollow(followList, "factor", Tag.SUBTRACT);
         Follow.addFollow(followList, "factor", Tag.OR);
+        Follow.addFollow(followList, "factor", Tag.DOT_COM);
         Follow.addFollow(followList, "factor", Tag.PAR_CLOSE);
         Follow.addFollow(followList, "factor", Tag.EQUAL);
         Follow.addFollow(followList, "factor", Tag.GREATER);
@@ -169,34 +169,33 @@ public class Follow
         Follow.addFollow(followList, "factor", Tag.LOWER);
         Follow.addFollow(followList, "factor", Tag.LOWER_EQUAL);
         Follow.addFollow(followList, "factor", Tag.NOT_EQUAL);
-        Follow.addFollow(followList, "factor", Tag.DOT_COM);
         
         followList.add(new Follow("relop"));
         Follow.addFollow(followList, "relop", Tag.ID);
-        Follow.addFollow(followList, "relop", Tag.INTEGER);
+        Follow.addFollow(followList, "relop", Tag.CONST_ZERO);
+        Follow.addFollow(followList, "relop", Tag.CONST_NOT_ZERO);
         Follow.addFollow(followList, "relop", Tag.QUOTE);
         Follow.addFollow(followList, "relop", Tag.PAR_OPEN);
         Follow.addFollow(followList, "relop", Tag.NOT);
         Follow.addFollow(followList, "relop", Tag.SUBTRACT);
-        Follow.addFollow(followList, "relop", Tag.UNDERSCORE);
         
         followList.add(new Follow("addop"));
         Follow.addFollow(followList, "addop", Tag.ID);
-        Follow.addFollow(followList, "addop", Tag.INTEGER);
+        Follow.addFollow(followList, "addop", Tag.CONST_ZERO);
+        Follow.addFollow(followList, "addop", Tag.CONST_NOT_ZERO);
         Follow.addFollow(followList, "addop", Tag.QUOTE);
         Follow.addFollow(followList, "addop", Tag.PAR_OPEN);
         Follow.addFollow(followList, "addop", Tag.NOT);
         Follow.addFollow(followList, "addop", Tag.SUBTRACT);
-        Follow.addFollow(followList, "addop", Tag.UNDERSCORE);
         
         followList.add(new Follow("mulop"));
         Follow.addFollow(followList, "mulop", Tag.ID);
-        Follow.addFollow(followList, "mulop", Tag.INTEGER);
+        Follow.addFollow(followList, "mulop", Tag.CONST_ZERO);
+        Follow.addFollow(followList, "mulop", Tag.CONST_NOT_ZERO);
         Follow.addFollow(followList, "mulop", Tag.QUOTE);
         Follow.addFollow(followList, "mulop", Tag.PAR_OPEN);
         Follow.addFollow(followList, "mulop", Tag.NOT);
         Follow.addFollow(followList, "mulop", Tag.SUBTRACT);
-        Follow.addFollow(followList, "mulop", Tag.UNDERSCORE);
         
         followList.add(new Follow("constant"));
         Follow.addFollow(followList, "constant", Tag.MULTIPLY);
@@ -205,6 +204,7 @@ public class Follow
         Follow.addFollow(followList, "constant", Tag.SUM);
         Follow.addFollow(followList, "constant", Tag.SUBTRACT);
         Follow.addFollow(followList, "constant", Tag.OR);
+        Follow.addFollow(followList, "constant", Tag.DOT_COM);
         Follow.addFollow(followList, "constant", Tag.PAR_CLOSE);
         Follow.addFollow(followList, "constant", Tag.EQUAL);
         Follow.addFollow(followList, "constant", Tag.GREATER);
@@ -212,7 +212,6 @@ public class Follow
         Follow.addFollow(followList, "constant", Tag.LOWER);
         Follow.addFollow(followList, "constant", Tag.LOWER_EQUAL);
         Follow.addFollow(followList, "constant", Tag.NOT_EQUAL);
-        Follow.addFollow(followList, "constant", Tag.DOT_COM);
         
         followList.add(new Follow("integerConst"));
         Follow.addFollow(followList, "integerConst", Tag.MULTIPLY);
@@ -221,6 +220,7 @@ public class Follow
         Follow.addFollow(followList, "integerConst", Tag.SUM);
         Follow.addFollow(followList, "integerConst", Tag.SUBTRACT);
         Follow.addFollow(followList, "integerConst", Tag.OR);
+        Follow.addFollow(followList, "integerConst", Tag.DOT_COM);
         Follow.addFollow(followList, "integerConst", Tag.PAR_CLOSE);
         Follow.addFollow(followList, "integerConst", Tag.EQUAL);
         Follow.addFollow(followList, "integerConst", Tag.GREATER);
@@ -228,7 +228,6 @@ public class Follow
         Follow.addFollow(followList, "integerConst", Tag.LOWER);
         Follow.addFollow(followList, "integerConst", Tag.LOWER_EQUAL);
         Follow.addFollow(followList, "integerConst", Tag.NOT_EQUAL);
-        Follow.addFollow(followList, "integerConst", Tag.DOT_COM);
         
         followList.add(new Follow("literal"));
         Follow.addFollow(followList, "literal", Tag.MULTIPLY);
@@ -237,6 +236,7 @@ public class Follow
         Follow.addFollow(followList, "literal", Tag.SUM);
         Follow.addFollow(followList, "literal", Tag.SUBTRACT);
         Follow.addFollow(followList, "literal", Tag.OR);
+        Follow.addFollow(followList, "literal", Tag.DOT_COM);
         Follow.addFollow(followList, "literal", Tag.PAR_CLOSE);
         Follow.addFollow(followList, "literal", Tag.EQUAL);
         Follow.addFollow(followList, "literal", Tag.GREATER);
@@ -244,12 +244,8 @@ public class Follow
         Follow.addFollow(followList, "literal", Tag.LOWER);
         Follow.addFollow(followList, "literal", Tag.LOWER_EQUAL);
         Follow.addFollow(followList, "literal", Tag.NOT_EQUAL);
-        Follow.addFollow(followList, "literal", Tag.DOT_COM);
         
         followList.add(new Follow("identifier"));
-        Follow.addFollow(followList, "identifier", Tag.COM);
-        Follow.addFollow(followList, "identifier", Tag.IS);
-        Follow.addFollow(followList, "identifier", Tag.ASSIGN);
         Follow.addFollow(followList, "identifier", Tag.PAR_CLOSE);
         Follow.addFollow(followList, "identifier", Tag.MULTIPLY);
         Follow.addFollow(followList, "identifier", Tag.DIVIDE);
@@ -257,43 +253,52 @@ public class Follow
         Follow.addFollow(followList, "identifier", Tag.SUM);
         Follow.addFollow(followList, "identifier", Tag.SUBTRACT);
         Follow.addFollow(followList, "identifier", Tag.OR);
+        Follow.addFollow(followList, "identifier", Tag.DOT_COM);
         Follow.addFollow(followList, "identifier", Tag.EQUAL);
         Follow.addFollow(followList, "identifier", Tag.GREATER);
         Follow.addFollow(followList, "identifier", Tag.GREATER_EQUAL);
         Follow.addFollow(followList, "identifier", Tag.LOWER);
         Follow.addFollow(followList, "identifier", Tag.LOWER_EQUAL);
         Follow.addFollow(followList, "identifier", Tag.NOT_EQUAL);
-        Follow.addFollow(followList, "identifier", Tag.DOT_COM);
+        Follow.addFollow(followList, "identifier", Tag.COM);
+        Follow.addFollow(followList, "identifier", Tag.IS);
+        Follow.addFollow(followList, "identifier", Tag.ASSIGN);
         
         followList.add(new Follow("letter"));
         Follow.addFollow(followList, "letter", Tag.ID);
-        Follow.addFollow(followList, "letter", Tag.INTEGER);
+        Follow.addFollow(followList, "letter", Tag.CONST_ZERO);
+        Follow.addFollow(followList, "letter", Tag.CONST_NOT_ZERO);
         Follow.addFollow(followList, "letter", Tag.UNDERSCORE);
-        Follow.addFollow(followList, "letter", Tag.COM);
-        Follow.addFollow(followList, "letter", Tag.IS);
-        Follow.addFollow(followList, "letter", Tag.ASSIGN);
-        Follow.addFollow(followList, "letter", Tag.PAR_CLOSE);
         Follow.addFollow(followList, "letter", Tag.MULTIPLY);
         Follow.addFollow(followList, "letter", Tag.DIVIDE);
         Follow.addFollow(followList, "letter", Tag.AND);
         Follow.addFollow(followList, "letter", Tag.SUM);
         Follow.addFollow(followList, "letter", Tag.SUBTRACT);
         Follow.addFollow(followList, "letter", Tag.OR);
+        Follow.addFollow(followList, "letter", Tag.DOT_COM);
+        Follow.addFollow(followList, "letter", Tag.PAR_CLOSE);
         Follow.addFollow(followList, "letter", Tag.EQUAL);
         Follow.addFollow(followList, "letter", Tag.GREATER);
         Follow.addFollow(followList, "letter", Tag.GREATER_EQUAL);
         Follow.addFollow(followList, "letter", Tag.LOWER);
         Follow.addFollow(followList, "letter", Tag.LOWER_EQUAL);
         Follow.addFollow(followList, "letter", Tag.NOT_EQUAL);
-        Follow.addFollow(followList, "letter", Tag.DOT_COM);
+        Follow.addFollow(followList, "letter", Tag.COM);
+        Follow.addFollow(followList, "letter", Tag.IS);
+        Follow.addFollow(followList, "letter", Tag.ASSIGN);
         
         followList.add(new Follow("digit"));
+        Follow.addFollow(followList, "digit", Tag.ID);
+        Follow.addFollow(followList, "digit", Tag.CONST_ZERO);
+        Follow.addFollow(followList, "digit", Tag.CONST_NOT_ZERO);
+        Follow.addFollow(followList, "digit", Tag.UNDERSCORE);
         Follow.addFollow(followList, "digit", Tag.MULTIPLY);
         Follow.addFollow(followList, "digit", Tag.DIVIDE);
         Follow.addFollow(followList, "digit", Tag.AND);
         Follow.addFollow(followList, "digit", Tag.SUM);
         Follow.addFollow(followList, "digit", Tag.SUBTRACT);
         Follow.addFollow(followList, "digit", Tag.OR);
+        Follow.addFollow(followList, "digit", Tag.DOT_COM);
         Follow.addFollow(followList, "digit", Tag.PAR_CLOSE);
         Follow.addFollow(followList, "digit", Tag.EQUAL);
         Follow.addFollow(followList, "digit", Tag.GREATER);
@@ -301,17 +306,13 @@ public class Follow
         Follow.addFollow(followList, "digit", Tag.LOWER);
         Follow.addFollow(followList, "digit", Tag.LOWER_EQUAL);
         Follow.addFollow(followList, "digit", Tag.NOT_EQUAL);
-        Follow.addFollow(followList, "digit", Tag.DOT_COM);
-        Follow.addFollow(followList, "digit", Tag.ID);
-        Follow.addFollow(followList, "digit", Tag.UNDERSCORE);
-        Follow.addFollow(followList, "digit", Tag.CONST);
-        Follow.addFollow(followList, "digit", Tag.INTEGER);
         Follow.addFollow(followList, "digit", Tag.COM);
         Follow.addFollow(followList, "digit", Tag.IS);
         Follow.addFollow(followList, "digit", Tag.ASSIGN);
         
         followList.add(new Follow("noZero"));
-        Follow.addFollow(followList, "noZero", Tag.INTEGER);
+        Follow.addFollow(followList, "noZero", Tag.CONST_ZERO);
+        Follow.addFollow(followList, "noZero", Tag.CONST_NOT_ZERO);
         
         followList.add(new Follow("caractere"));
         Follow.addFollow(followList, "caractere", Tag.QUOTE);
