@@ -14,7 +14,7 @@ public class Parser {
     private Lexer lexer;
     private ArrayList<Token> token;
     private ArrayList<Follow> followList;
-    private boolean error = false;
+    private boolean error = false; //Se false ao final da análise, não há erro de compilação
 
     public Parser(String fileName) throws FileNotFoundException {
         this.fileName = fileName;
@@ -39,16 +39,20 @@ public class Parser {
     }
 
     public void error(String name, int []tag) {
+        //Mensagem de erro
         System.out.print("Erro na linha " + Lexer.line + " no reconhecimento de " + name + ".\n\tToken esperado: "); 
         for(int i = 0; i < tag.length; i++)
             System.out.print(Tag.getName(tag[i]) + " ");
         System.out.println("\n\tPróximo token: '" + Tag.getName(token.get(0).getTag()) + "'.");
         
+        //RECUPERAÇÃO DE ERRO: modo pânico
         System.out.println("Modo pânico ativado!");
-        while(!Follow.isFollow(followList, name, token.get(0).getTag()) && token.get(0).getTag() != Tag.EOF) 
+        while(!Follow.isFollow(followList, name, token.get(0).getTag()) && token.get(0).getTag() != Tag.EOF) {
+            token.remove(0);
             getToken();
+        }
         System.out.println("Modo pânico desativado!\n");
-        
+
         error = true;
         
         if(token.get(0).getTag() == Tag.EOF)
