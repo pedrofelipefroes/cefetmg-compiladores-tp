@@ -13,7 +13,7 @@ public class Tag {
 
     // numeric constant, literal and operators
     CONST = 271, DIVIDE = '/', LITERAL = 273, MULTIPLY = '*', SUBTRACT = '-', SUM = '+', CONST_ZERO = 277,
-            CONST_NOT_ZERO = 278, CONST_ASCII = 279,
+            CONST_NOT_ZERO = 278, CONST_ASCII = 279, UNDERSCORE = '_',
 
     // relational operators
     EQUAL = 285, GREATER = 286, GREATER_EQUAL = 287, LOWER = 288, LOWER_EQUAL = 289, NOT_EQUAL = 290,
