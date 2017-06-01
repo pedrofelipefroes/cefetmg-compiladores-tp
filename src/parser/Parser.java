@@ -12,7 +12,7 @@ public class Parser {
 
     private String fileName;
     private Lexer lexer;
-    private Token token;
+    private ArrayList<Token> token;
     private ArrayList<Follow> followList;
     private boolean error = false;
 
@@ -20,6 +20,7 @@ public class Parser {
         this.fileName = fileName;
         this.lexer = new Lexer(fileName);
         this.followList = new ArrayList<Follow>();
+        this.token = new ArrayList<Token>();
         Follow.initializeFollowList(followList);
     }
 
@@ -34,29 +35,31 @@ public class Parser {
     }
 
     private void getToken() {
-        token = lexer.run(fileName);
+        token.add(lexer.run(fileName));
     }
 
     public void error(String name, int []tag) {
         System.out.print("Erro na linha " + Lexer.line + " no reconhecimento de " + name + ".\n\tToken esperado: "); 
         for(int i = 0; i < tag.length; i++)
             System.out.print(Tag.getName(tag[i]) + " ");
-        System.out.println("\n\tPróximo token: '" + Tag.getName(token.getTag()) + "'.");
+        System.out.println("\n\tPróximo token: '" + Tag.getName(token.get(0).getTag()) + "'.");
         
         System.out.println("Modo pânico ativado!");
-        while(!Follow.isFollow(followList, name, token.getTag()) && token.getTag() != Tag.EOF) 
+        while(!Follow.isFollow(followList, name, token.get(0).getTag()) && token.get(0).getTag() != Tag.EOF) 
             getToken();
         System.out.println("Modo pânico desativado!\n");
         
         error = true;
         
-        if(token.getTag() == Tag.EOF)
+        if(token.get(0).getTag() == Tag.EOF)
             System.exit(0);
     }
 
     public void eat(int tag, String name) {
-        if (token.getTag() == tag)
+        if (token.get(0).getTag() == tag) {
+            token.remove(0);
             getToken();
+        }
         else {
             int []tags = {tag};
             error(name, tags);
@@ -64,13 +67,21 @@ public class Parser {
     }
 
     public void program() {
-        switch (token.getTag()) {
+        switch (token.get(0).getTag()) {
             case Tag.INIT:
                 eat(Tag.INIT, "program");
-                if (token.getTag() == Tag.ID)
-                    declList();
-                stmtList();
-                eat(Tag.STOP, "program");
+                //PARTE NÃO LL(1): É preciso conhecer o token seguinte
+                if (token.get(0).getTag() == Tag.ID) {
+                    getToken();
+                    //Se o token seguinte for ',' ou 'is'
+                    if(token.get(1).getTag() == Tag.COM || token.get(1).getTag() == Tag.IS) {
+                        declList();
+                    //Se o token seguinte for ':='
+                    } else if (token.get(1).getTag() == Tag.ASSIGN) {
+                        stmtList();
+                        eat(Tag.STOP, "program");
+                    }
+                }
                 break;
 
             default:
@@ -81,11 +92,11 @@ public class Parser {
     }
 
     public void declList() {
-        switch (token.getTag()) {
+        switch (token.get(0).getTag()) {
             case Tag.ID:
                 decl();
                 eat(Tag.DOT_COM, "declList");
-                while(token.getTag() == Tag.ID) {
+                while(token.get(0).getTag() == Tag.ID) {
                     decl();
                     eat(Tag.DOT_COM, "declList");
                 }
@@ -99,7 +110,7 @@ public class Parser {
     }
 
     public void decl() {
-        switch (token.getTag()) {
+        switch (token.get(0).getTag()) {
             case Tag.ID:
                 identList();
                 eat(Tag.IS, "decl");
@@ -114,10 +125,10 @@ public class Parser {
     }
 
     public void identList() {
-        switch (token.getTag()) {
+        switch (token.get(0).getTag()) {
             case Tag.ID:
                 identifier();
-                while (token.getTag() == Tag.COM) {
+                while (token.get(0).getTag() == Tag.COM) {
                     eat(Tag.COM, "identList");
                     identifier();
                 }
@@ -131,7 +142,7 @@ public class Parser {
     }
 
     public void type() {
-        switch (token.getTag()) {
+        switch (token.get(0).getTag()) {
             case Tag.INTEGER:
                 eat(Tag.INTEGER, "type");
                 break;
@@ -148,7 +159,7 @@ public class Parser {
     }
 
     public void stmtList() {
-        switch (token.getTag()) {
+        switch (token.get(0).getTag()) {
             case Tag.ID:
             case Tag.DO:
             case Tag.IF:
@@ -156,8 +167,8 @@ public class Parser {
             case Tag.WRITE:
                 stmt();
                 eat(Tag.DOT_COM, "stmtList");
-                while (token.getTag() == Tag.ID || token.getTag() == Tag.DO || token.getTag() == Tag.IF ||
-                       token.getTag() == Tag.READ || token.getTag() == Tag.WRITE) {
+                while (token.get(0).getTag() == Tag.ID || token.get(0).getTag() == Tag.DO || token.get(0).getTag() == Tag.IF ||
+                       token.get(0).getTag() == Tag.READ || token.get(0).getTag() == Tag.WRITE) {
                     stmt();
                     eat(Tag.DOT_COM, "stmtList");
                 }
@@ -171,7 +182,7 @@ public class Parser {
     }
 
     public void stmt() {
-        switch (token.getTag()) {
+        switch (token.get(0).getTag()) {
             case Tag.ID:
                 assignStmt();
                 break;
@@ -200,7 +211,7 @@ public class Parser {
     }
 
     public void assignStmt() {
-        switch (token.getTag()) {
+        switch (token.get(0).getTag()) {
             case Tag.ID:
                 identifier();
                 eat(Tag.ASSIGN, "assignStmt");
@@ -215,7 +226,7 @@ public class Parser {
     }
 
     public void ifStmt() {
-        switch (token.getTag()) {
+        switch (token.get(0).getTag()) {
             case Tag.IF:
                 eat(Tag.IF, "ifStmt");
                 eat(Tag.PAR_OPEN, "ifStmt");
@@ -224,7 +235,7 @@ public class Parser {
                 eat(Tag.BEGIN, "ifStmt");
                 stmtList();
                 eat(Tag.END, "ifStmt");
-                if (token.getTag() == Tag.ELSE) {
+                if (token.get(0).getTag() == Tag.ELSE) {
                     eat(Tag.ELSE, "ifStmt");
                     eat(Tag.BEGIN, "ifStmt");
                     stmtList();
@@ -240,7 +251,7 @@ public class Parser {
     }
 
     public void condition() {
-        switch (token.getTag()) {
+        switch (token.get(0).getTag()) {
             case Tag.CONST_ZERO:
             case Tag.CONST_NOT_ZERO:
             case Tag.ID:
@@ -259,7 +270,7 @@ public class Parser {
     }
 
     public void doStmt() {
-        switch (token.getTag()) {
+        switch (token.get(0).getTag()) {
             case Tag.DO:
                 eat(Tag.DO, "doStmt");
                 stmtList();
@@ -274,7 +285,7 @@ public class Parser {
     }
 
     public void doSuffix() {
-        switch (token.getTag()) {
+        switch (token.get(0).getTag()) {
             case Tag.WHILE:
                 eat(Tag.WHILE, "doSuffix");
                 eat(Tag.PAR_OPEN, "doSuffix");
@@ -290,7 +301,7 @@ public class Parser {
     }
 
     public void readStmt() {
-        switch (token.getTag()) {
+        switch (token.get(0).getTag()) {
             case Tag.READ:
                 eat(Tag.READ, "readStmt");
                 eat(Tag.PAR_OPEN, "readStmt");
@@ -306,7 +317,7 @@ public class Parser {
     }
 
     public void writeStmt() {
-        switch (token.getTag()) {
+        switch (token.get(0).getTag()) {
             case Tag.WRITE:
                 eat(Tag.WRITE, "writeStmt");
                 eat(Tag.PAR_OPEN, "writeStmt");
@@ -322,7 +333,7 @@ public class Parser {
     }
 
     public void writable() {
-        switch (token.getTag()) {
+        switch (token.get(0).getTag()) {
             case Tag.CONST_ZERO:
             case Tag.CONST_NOT_ZERO:
             case Tag.ID:
@@ -341,7 +352,7 @@ public class Parser {
     }
 
     public void expression() {
-        switch (token.getTag()) {
+        switch (token.get(0).getTag()) {
             case Tag.CONST_ZERO:
             case Tag.CONST_NOT_ZERO:
             case Tag.ID:
@@ -350,7 +361,7 @@ public class Parser {
             case Tag.PAR_OPEN:
             case Tag.SUBTRACT:
                 simpleExpr();
-                if(token.getTag() >= Tag.EQUAL && token.getTag() <= Tag.NOT_EQUAL) {
+                if(token.get(0).getTag() >= Tag.EQUAL && token.get(0).getTag() <= Tag.NOT_EQUAL) {
                     relop();
                     simpleExpr();
                 }
@@ -364,7 +375,7 @@ public class Parser {
     }
 
     public void simpleExpr() {
-        switch (token.getTag()) {
+        switch (token.get(0).getTag()) {
             case Tag.CONST_ZERO:
             case Tag.CONST_NOT_ZERO:
             case Tag.ID:
@@ -384,7 +395,7 @@ public class Parser {
     }
 
     public void simpleExprZ() {
-        switch (token.getTag()) {
+        switch (token.get(0).getTag()) {
             case Tag.OR:
             case Tag.SUM:
             case Tag.SUBTRACT:
@@ -411,7 +422,7 @@ public class Parser {
     }
 
     public void term() {
-        switch (token.getTag()) {
+        switch (token.get(0).getTag()) {
             case Tag.CONST_ZERO:
             case Tag.CONST_NOT_ZERO:
             case Tag.ID:
@@ -431,7 +442,7 @@ public class Parser {
     }
 
     public void termZ() {
-        switch (token.getTag()) {
+        switch (token.get(0).getTag()) {
             case Tag.AND:
             case Tag.MULTIPLY:
             case Tag.DIVIDE:
@@ -461,7 +472,7 @@ public class Parser {
     }
 
     public void factorA() {
-        switch (token.getTag()) {
+        switch (token.get(0).getTag()) {
             case Tag.CONST_ZERO:
             case Tag.CONST_NOT_ZERO:
             case Tag.ID:
@@ -488,7 +499,7 @@ public class Parser {
     }
 
     public void factor() {
-        switch (token.getTag()) {
+        switch (token.get(0).getTag()) {
             case Tag.CONST_ZERO:
             case Tag.CONST_NOT_ZERO:
             case Tag.QUOTE:
@@ -513,7 +524,7 @@ public class Parser {
     }
 
     public void relop() {
-        switch (token.getTag()) {
+        switch (token.get(0).getTag()) {
             case Tag.EQUAL:
                 eat(Tag.EQUAL, "relop");
                 break;
@@ -546,7 +557,7 @@ public class Parser {
     }
 
     public void addop() {
-        switch (token.getTag()) {
+        switch (token.get(0).getTag()) {
             case Tag.OR:
                 eat(Tag.OR, "addop");
                 break;
@@ -567,7 +578,7 @@ public class Parser {
     }
 
     public void mulop() {
-        switch (token.getTag()) {
+        switch (token.get(0).getTag()) {
             case Tag.AND:
                 eat(Tag.AND, "mulop");
                 break;
@@ -588,7 +599,7 @@ public class Parser {
     }
 
     public void constant() {
-        switch (token.getTag()) {
+        switch (token.get(0).getTag()) {
             case Tag.CONST_ZERO:
             case Tag.CONST_NOT_ZERO:
                 integerConst();
@@ -606,14 +617,14 @@ public class Parser {
     }
 
     public void integerConst() {
-        switch (token.getTag()) {
+        switch (token.get(0).getTag()) {
             case Tag.CONST_ZERO:
                 eat(Tag.CONST_ZERO, "integerConst");
                 break;
 
             case Tag.CONST_NOT_ZERO:
                 noZero();
-                while(token.getTag() == Tag.CONST_NOT_ZERO || token.getTag() == Tag.CONST_ZERO)
+                while(token.get(0).getTag() == Tag.CONST_NOT_ZERO || token.get(0).getTag() == Tag.CONST_ZERO)
                     digit();
                 break;
 
@@ -625,7 +636,7 @@ public class Parser {
     }
 
     public void literal() {
-        switch (token.getTag()) {
+        switch (token.get(0).getTag()) {
             case Tag.QUOTE:
                 eat(Tag.QUOTE, "literal");
                 caractere();
@@ -640,13 +651,13 @@ public class Parser {
     }
 
     public void identifier() {
-        switch (token.getTag()) {
+        switch (token.get(0).getTag()) {
             case Tag.ID:
                 letter();
-                while (token.getTag() == Tag.ID || token.getTag() == Tag.INTEGER || token.getTag() == '_') {
-                    if (token.getTag() == Tag.ID) {
+                while (token.get(0).getTag() == Tag.ID || token.get(0).getTag() == Tag.INTEGER || token.get(0).getTag() == '_') {
+                    if (token.get(0).getTag() == Tag.ID) {
                         letter();
-                    } else if (token.getTag() == Tag.INTEGER) {
+                    } else if (token.get(0).getTag() == Tag.INTEGER) {
                         digit();
                     } else {
                         eat('_', "identifier");
@@ -662,7 +673,7 @@ public class Parser {
     }
 
     public void letter() {
-        switch (token.getTag()) {
+        switch (token.get(0).getTag()) {
             case Tag.ID:
                 eat(Tag.ID, "letter");
                 break;
@@ -675,7 +686,7 @@ public class Parser {
     }
 
     public void digit() {
-        switch (token.getTag()) {
+        switch (token.get(0).getTag()) {
             case Tag.CONST_ZERO:
             case Tag.CONST_NOT_ZERO:
                 eat(Tag.INTEGER, "digit");
@@ -689,7 +700,7 @@ public class Parser {
     }
 
     public void noZero() {
-        switch (token.getTag()) {            
+        switch (token.get(0).getTag()) {            
             case Tag.CONST_NOT_ZERO:
                 eat(Tag.CONST_NOT_ZERO, "noZero");
                 break;
@@ -702,7 +713,7 @@ public class Parser {
     }
 
     public void caractere() {
-        if (isAscii(token))
+        if (isAscii(token.get(0)))
                 eat(Tag.ID, "caractere");
         else {
                 int []tags = {Tag.CONST_ASCII};
