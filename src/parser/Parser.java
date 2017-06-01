@@ -151,23 +151,21 @@ public class Parser {
     public void stmtList() {
         switch (token.getTag()) {
             case Tag.ID:
-            case Tag.BEGIN:
             case Tag.DO:
             case Tag.IF:
             case Tag.READ:
             case Tag.WRITE:
                 stmt();
                 eat(Tag.DOT_COM, "stmtList");
-                //Conjunto FIRST de um stmt
-                while (token.getTag() == Tag.ID || token.getTag() == Tag.IF || token.getTag() == Tag.BEGIN ||
-                       token.getTag() == Tag.DO || token.getTag() == Tag.READ || token.getTag() == Tag.WRITE) {
+                while (token.getTag() == Tag.ID || token.getTag() == Tag.DO || token.getTag() == Tag.IF ||
+                       token.getTag() == Tag.READ || token.getTag() == Tag.WRITE) {
                     stmt();
                     eat(Tag.DOT_COM, "stmtList");
                 }
                 break;
 
             default:
-                int []tags = {Tag.ID, Tag.BEGIN, Tag.DO, Tag.IF, Tag.READ, Tag.WRITE};
+                int []tags = {Tag.ID, Tag.DO, Tag.IF, Tag.READ, Tag.WRITE};
                 error("stmtList", tags);
                 break;
         }
@@ -179,7 +177,6 @@ public class Parser {
                 assignStmt();
                 break;
 
-            case Tag.BEGIN:
             case Tag.IF:
                 ifStmt();
                 break;
@@ -197,7 +194,7 @@ public class Parser {
                 break;
 
             default:
-                int []tags = {Tag.ID, Tag.BEGIN, Tag.DO, Tag.READ, Tag.WRITE};
+                int []tags = {Tag.ID, Tag.DO, Tag.READ, Tag.WRITE};
                 error("stmt", tags);
                 break;
         }
@@ -245,7 +242,8 @@ public class Parser {
 
     public void condition() {
         switch (token.getTag()) {
-            case Tag.INTEGER:
+            case Tag.CONST_ZERO:
+            case Tag.CONST_NOT_ZERO:
             case Tag.ID:
             case Tag.NOT:
             case Tag.QUOTE:
@@ -326,7 +324,8 @@ public class Parser {
 
     public void writable() {
         switch (token.getTag()) {
-            case Tag.INTEGER:
+            case Tag.CONST_ZERO:
+            case Tag.CONST_NOT_ZERO:
             case Tag.ID:
             case Tag.NOT:
             case Tag.QUOTE:
@@ -336,7 +335,7 @@ public class Parser {
                 break;
 
             default:
-                int []tags = {Tag.INTEGER, Tag.ID, Tag.NOT, Tag.QUOTE, Tag.PAR_OPEN, Tag.SUBTRACT};
+                int []tags = {Tag.CONST_ZERO, Tag.CONST_NOT_ZERO, Tag.ID, Tag.NOT, Tag.QUOTE, Tag.PAR_OPEN, Tag.SUBTRACT};
                 error("writable", tags);
                 break;
         }
@@ -344,7 +343,8 @@ public class Parser {
 
     public void expression() {
         switch (token.getTag()) {
-            case Tag.INTEGER:
+        	case Tag.CONST_ZERO:
+        	case Tag.CONST_NOT_ZERO:
             case Tag.ID:
             case Tag.NOT:
             case Tag.QUOTE:
@@ -358,7 +358,7 @@ public class Parser {
                 break;
 
             default:
-                int []tags = {Tag.INTEGER, Tag.ID, Tag.NOT, Tag.QUOTE, Tag.PAR_OPEN, Tag.SUBTRACT};
+                int []tags = {Tag.CONST_ZERO, Tag.CONST_NOT_ZERO, Tag.ID, Tag.NOT, Tag.QUOTE, Tag.PAR_OPEN, Tag.SUBTRACT};
                 error("expression", tags);
                 break;
         }
@@ -366,7 +366,8 @@ public class Parser {
 
     public void simpleExpr() {
         switch (token.getTag()) {
-            case Tag.INTEGER:
+        	case Tag.CONST_ZERO:
+        	case Tag.CONST_NOT_ZERO:
             case Tag.ID:
             case Tag.NOT:
             case Tag.QUOTE:
@@ -377,7 +378,7 @@ public class Parser {
                 break;
 
             default:
-                int []tags = {Tag.INTEGER, Tag.ID, Tag.NOT, Tag.QUOTE, Tag.PAR_OPEN, Tag.SUBTRACT};
+                int []tags = {Tag.CONST_ZERO, Tag.CONST_NOT_ZERO, Tag.ID, Tag.NOT, Tag.QUOTE, Tag.PAR_OPEN, Tag.SUBTRACT};
                 error("simpleExpr", tags);
                 break;
         }
@@ -400,7 +401,7 @@ public class Parser {
             case Tag.LOWER:
             case Tag.LOWER_EQUAL:
             case Tag.NOT_EQUAL:
-            case Tag.DOT_COM: //TO-DO: Conferir lista de Follow(simpleExprZ)
+            case Tag.DOT_COM:
                 break;
 
             default:
@@ -412,7 +413,8 @@ public class Parser {
 
     public void term() {
         switch (token.getTag()) {
-            case Tag.INTEGER:
+        	case Tag.CONST_ZERO:
+        	case Tag.CONST_NOT_ZERO:
             case Tag.ID:
             case Tag.NOT:
             case Tag.QUOTE:
@@ -423,7 +425,7 @@ public class Parser {
                 break;
 
             default:
-                int []tags = {Tag.INTEGER, Tag.ID, Tag.NOT, Tag.QUOTE, Tag.PAR_OPEN, Tag.SUBTRACT};
+                int []tags = {Tag.CONST_ZERO, Tag.CONST_NOT_ZERO, Tag.ID, Tag.NOT, Tag.QUOTE, Tag.PAR_OPEN, Tag.SUBTRACT};
                 error("term", tags);
                 break;
         }
@@ -439,18 +441,21 @@ public class Parser {
                 termZ();
                 break;
 
+            case Tag.OR:
             case Tag.PAR_CLOSE:
+            case Tag.SUM:
+            case Tag.SUBTRACT:
             case Tag.EQUAL:
             case Tag.GREATER:
             case Tag.GREATER_EQUAL:
             case Tag.LOWER:
             case Tag.LOWER_EQUAL:
             case Tag.NOT_EQUAL:
-            case Tag.DOT_COM: // TO-DO: Conferir lista de Follow(termZ)
+            case Tag.DOT_COM:
                 break;
 
             default:
-                int []tags = {Tag.AND, Tag.MULTIPLY, Tag.DIVIDE, Tag.PAR_CLOSE, Tag.EQUAL, Tag.GREATER, Tag.GREATER_EQUAL, Tag.LOWER, Tag.LOWER_EQUAL, Tag.NOT_EQUAL};
+                int []tags = {Tag.AND, Tag.MULTIPLY, Tag.DIVIDE, Tag.OR, Tag.PAR_CLOSE, Tag.SUM, Tag.SUBTRACT, Tag.EQUAL, Tag.GREATER, Tag.GREATER_EQUAL, Tag.LOWER, Tag.LOWER_EQUAL, Tag.NOT_EQUAL};
                 error("termZ", tags);
                 break;
         }
@@ -458,7 +463,8 @@ public class Parser {
 
     public void factorA() {
         switch (token.getTag()) {
-            case Tag.INTEGER:
+            case Tag.CONST_ZERO:
+            case Tag.CONST_NOT_ZERO:
             case Tag.ID:
             case Tag.QUOTE:
             case Tag.PAR_OPEN:
@@ -476,7 +482,7 @@ public class Parser {
                 break;
 
             default:
-                int []tags = {Tag.INTEGER, Tag.ID, Tag.QUOTE, Tag.PAR_OPEN, Tag.NOT, Tag.SUBTRACT};
+                int []tags = {Tag.CONST_ZERO, Tag.CONST_NOT_ZERO, Tag.ID, Tag.QUOTE, Tag.PAR_OPEN, Tag.NOT, Tag.SUBTRACT};
                 error("factorA", tags);
                 break;
         }
@@ -484,7 +490,8 @@ public class Parser {
 
     public void factor() {
         switch (token.getTag()) {
-            case Tag.INTEGER:
+        	case Tag.CONST_ZERO:
+        	case Tag.CONST_NOT_ZERO:
             case Tag.QUOTE:
                 constant();
                 break;
@@ -500,7 +507,7 @@ public class Parser {
                 break;
 
             default:
-                int []tags = {Tag.INTEGER, Tag.QUOTE, Tag.ID, Tag.PAR_OPEN};
+                int []tags = {Tag.CONST_ZERO, Tag.CONST_NOT_ZERO, Tag.QUOTE, Tag.ID, Tag.PAR_OPEN};
                 error("factor", tags);
                 break;
         }
@@ -583,7 +590,8 @@ public class Parser {
 
     public void constant() {
         switch (token.getTag()) {
-            case Tag.INTEGER:
+            case Tag.CONST_ZERO:
+            case Tag.CONST_NOT_ZERO:
                 integerConst();
                 break;
 
@@ -600,22 +608,17 @@ public class Parser {
 
     public void integerConst() {
         switch (token.getTag()) {
-            case Tag.CONST_ZERO: // TO-DO: criar tag no léxico
+            case Tag.CONST_ZERO:
                 eat(Tag.CONST_ZERO, "integerConst");
                 break;
 
-            case Tag.CONST_NOT_ZERO: // TO-DO: criar tag no léxico
+            case Tag.CONST_NOT_ZERO:
                 noZero();
                 digit();
                 break;
 
-            case Tag.INTEGER: // TO-DO: comentar este case se os de cima funcionarem
-                noZero();
-                //digit();
-                break;
-
             default:
-                int []tags = {Tag.CONST_ZERO, Tag.CONST_NOT_ZERO, Tag.INTEGER};
+                int []tags = {Tag.CONST_ZERO, Tag.CONST_NOT_ZERO};
                 error("integerConst", tags);
                 break;
         }
@@ -673,7 +676,8 @@ public class Parser {
 
     public void digit() {
         switch (token.getTag()) {
-            case Tag.INTEGER:
+            case Tag.CONST_ZERO:
+            case Tag.CONST_NOT_ZERO:
                 eat(Tag.INTEGER, "digit");
                 break;
 
@@ -685,13 +689,9 @@ public class Parser {
     }
 
     public void noZero() {
-        switch (token.getTag()) {
-            case Tag.INTEGER:
-                eat(Tag.INTEGER, "noZero");
-                break;
-            
+        switch (token.getTag()) {            
             case Tag.CONST_NOT_ZERO:
-                eat(Tag.CONST_NOT_ZERO, "noZero"); // TO-DO: criar tag no léxico
+                eat(Tag.CONST_NOT_ZERO, "noZero");
                 break;
 
             default:

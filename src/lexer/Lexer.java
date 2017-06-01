@@ -107,7 +107,7 @@ public class Lexer {
 				readCharacter();
 			} while (Character.isDigit(c));
 
-			return new NumericValue(value);
+			return new NumericValue(value, value);
 		}
 
 		// checks numeric and relational operators
