@@ -15,7 +15,7 @@ import symbol.*;
 public class Lexer
 {
 
-    public static int line = 0;
+    public static int line = 1;
     private char c = ' ';
     private FileReader fileReader;
     private BufferedReader bufferedReader;

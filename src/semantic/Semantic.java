@@ -37,6 +37,13 @@ public class Semantic
             return 0;
         }
     }
+    
+    public boolean getBool() {
+        if(string.equals("true"))
+            return true;
+        else
+            return false;
+    }
 
     public String getFunctionName()
     {
