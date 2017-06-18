@@ -17,9 +17,9 @@ public class Condition
     private boolean value;
 
     public static Condition condition = new Condition(true, true);
-    public static int tagIF = 1;
-    public static int tagWHILE = 2;
-    public static int tagVOID = 3;
+    public final static int tagIF = 1;
+    public final static int tagWHILE = 2;
+    public final static int tagVOID = 3;
 
     /**
      * 

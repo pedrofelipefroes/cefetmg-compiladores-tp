@@ -8,7 +8,7 @@ public class Semantic
     private int type;
     private String string;
     private String functionName;
-    
+
     public static boolean error = false;
 
     public Semantic(int type, String value, String functionName)
@@ -37,9 +37,10 @@ public class Semantic
             return 0;
         }
     }
-    
-    public boolean getBool() {
-        if(string.equals("true"))
+
+    public boolean getBool()
+    {
+        if (string.equals("true"))
             return true;
         else
             return false;

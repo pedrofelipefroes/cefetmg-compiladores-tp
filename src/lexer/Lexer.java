@@ -88,7 +88,7 @@ public class Lexer
             String string = stringBuffer.toString();
             Word word = (Word) words.get(string.toLowerCase());
 
-            if (word != null) 
+            if (word != null)
                 return word; // word is already present in Hash Table words
 
             // word is not present in Hash Table words
