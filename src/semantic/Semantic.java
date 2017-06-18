@@ -56,6 +56,12 @@ public class Semantic
         System.out.println("Semântico: Erro de tipo na linha " + Lexer.line + ". Esperava-se " + esperado + " e obteve-se " + encontrado + ".");
     }
 
+    public static void errorType(String mensagem)
+    {
+        error = true;
+        System.out.println("Semântico: Erro de tipo na linha " + Lexer.line + ". Mensagem: " + mensagem);
+    }
+
     public static void errorUnicity(String variavel)
     {
         error = true;

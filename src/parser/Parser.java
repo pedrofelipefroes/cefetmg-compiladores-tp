@@ -95,12 +95,12 @@ public class Parser
                     if (token.get(1).getTag() == Tag.COM || token.get(1).getTag() == Tag.IS) {
                         declList();
                         pop();
-                        stmtList(true);
+                        stmtList(Condition.condition, Condition.tagVOID);
                         pop();
                         eat(Tag.STOP, "program");
                         //Se o token seguinte for ':='
                     } else if (token.get(1).getTag() == Tag.ASSIGN) {
-                        stmtList(true);
+                        stmtList(Condition.condition, Condition.tagVOID);
                         pop();
                         eat(Tag.STOP, "program");
                     } else {
@@ -224,7 +224,7 @@ public class Parser
         }
     }
 
-    public void stmtList(Boolean bool)
+    public void stmtList(Condition condition, int stmtType)
     {
         switch (token.get(0).getTag()) {
             case Tag.ID:
@@ -232,12 +232,12 @@ public class Parser
             case Tag.IF:
             case Tag.READ:
             case Tag.WRITE:
-                stmt(bool);
+                stmt(condition, stmtType);
                 pop();
                 push(new Semantic(semanticObj.getType(), null, "stmtList"));
                 eat(Tag.DOT_COM, "stmtList");
                 while (token.get(0).getTag() == Tag.ID || token.get(0).getTag() == Tag.DO || token.get(0).getTag() == Tag.IF || token.get(0).getTag() == Tag.READ || token.get(0).getTag() == Tag.WRITE) {
-                    stmt(bool);
+                    stmt(condition, stmtType);
                     pop();
                     push(new Semantic(semanticObj.getType(), null, "stmtList"));
                     eat(Tag.DOT_COM, "stmtList");
@@ -252,35 +252,35 @@ public class Parser
         }
     }
 
-    public void stmt(Boolean bool)
+    public void stmt(Condition condition, int stmtType)
     {
         switch (token.get(0).getTag()) {
             case Tag.ID:
-                assignStmt(bool);
+                assignStmt(condition, stmtType);
                 pop();
                 push(new Semantic(semanticObj.getType(), null, "stmt"));
                 break;
 
             case Tag.IF:
-                ifStmt(bool);
+                ifStmt(condition);
                 pop();
                 push(new Semantic(semanticObj.getType(), null, "stmt"));
                 break;
 
             case Tag.DO:
-                doStmt(bool);
+                doStmt(condition);
                 pop();
                 push(new Semantic(semanticObj.getType(), null, "stmt"));
                 break;
 
             case Tag.READ:
-                readStmt(bool);
+                readStmt(condition);
                 pop();
                 push(new Semantic(semanticObj.getType(), null, "stmt"));
                 break;
 
             case Tag.WRITE:
-                writeStmt(bool);
+                writeStmt(condition, stmtType);
                 pop();
                 push(new Semantic(semanticObj.getType(), null, "stmt"));
                 break;
@@ -293,7 +293,7 @@ public class Parser
         }
     }
 
-    public void assignStmt(Boolean bool)
+    public void assignStmt(Condition condition, int stmtType)
     {
         String value;
         switch (token.get(0).getTag()) {
@@ -302,10 +302,14 @@ public class Parser
                 pop();
                 value = semanticObj.getString();
                 eat(Tag.ASSIGN, "assignStmt");
-                simpleExpr();
+                simpleExpr(stmtType);
                 pop();
-                if (bool)
-                    setValue(value, semanticObj.getString());
+
+                if (condition.evaluate())
+                    do
+                        setValue(value, semanticObj.getString());
+                    while (condition.isRepeat() && condition.evaluate());
+
                 push(new Semantic(Type.VOID, null, "assignStmt")); //TO-DO: Considerar tipo
                 break;
 
@@ -317,24 +321,23 @@ public class Parser
         }
     }
 
-    public void ifStmt(Boolean bool)
+    public void ifStmt(Condition condition)
     {
         switch (token.get(0).getTag()) {
             case Tag.IF:
                 eat(Tag.IF, "ifStmt");
                 eat(Tag.PAR_OPEN, "ifStmt");
-                condition();
+                Condition aux = condition(Condition.tagIF);
                 pop();
-                bool = semanticObj.getBool();
                 eat(Tag.PAR_CLOSE, "ifStmt");
                 eat(Tag.BEGIN, "ifStmt");
-                stmtList(bool);
+                stmtList(aux, Condition.tagIF);
                 pop();
                 eat(Tag.END, "ifStmt");
                 if (token.get(0).getTag() == Tag.ELSE) {
                     eat(Tag.ELSE, "ifStmt");
                     eat(Tag.BEGIN, "ifStmt");
-                    stmtList(!bool);
+                    stmtList(aux.switchOperators(), Condition.tagIF);
                     pop();
                     eat(Tag.END, "ifStmt");
                 }
@@ -349,8 +352,10 @@ public class Parser
         }
     }
 
-    public void condition()
+    public Condition condition(int stmtType)
     {
+        Condition condition = null;
+
         switch (token.get(0).getTag()) {
             case Tag.CONST_ZERO:
             case Tag.CONST_NOT_ZERO:
@@ -359,7 +364,7 @@ public class Parser
             case Tag.LITERAL:
             case Tag.PAR_OPEN:
             case Tag.SUBTRACT:
-                expression();
+                condition = expression(stmtType);
                 pop();
                 push(new Semantic(semanticObj.getType(), semanticObj.getString(), "condition"));
                 break;
@@ -370,16 +375,18 @@ public class Parser
                 errorParser("condition", tags);
                 break;
         }
+
+        return condition;
     }
 
-    public void doStmt(Boolean bool)
+    public void doStmt(Condition condition)
     {
         Semantic returnA;
         Semantic returnB;
         switch (token.get(0).getTag()) {
             case Tag.DO:
                 eat(Tag.DO, "doStmt");
-                stmtList(true);
+                stmtList(condition, Condition.tagWHILE);
                 pop();
                 returnA = semanticObj;
                 doSuffix();
@@ -400,13 +407,15 @@ public class Parser
         }
     }
 
-    public void doSuffix()
+    public Condition doSuffix()
     {
+        Condition condition = null;
+
         switch (token.get(0).getTag()) {
             case Tag.WHILE:
                 eat(Tag.WHILE, "doSuffix");
                 eat(Tag.PAR_OPEN, "doSuffix");
-                condition();
+                condition = condition(Condition.tagWHILE);
                 eat(Tag.PAR_CLOSE, "doSuffix");
                 pop();
                 if (semanticObj.getType() == Type.BOOLEAN)
@@ -421,9 +430,11 @@ public class Parser
                 errorParser("doSuffix", tags);
                 break;
         }
+
+        return condition;
     }
 
-    public void readStmt(Boolean bool)
+    public void readStmt(Condition condition)
     {
         switch (token.get(0).getTag()) {
             case Tag.READ:
@@ -433,7 +444,7 @@ public class Parser
                 pop();
                 eat(Tag.PAR_CLOSE, "readStmt");
 
-                if (bool) {
+                if (condition.evaluate()) {
                     System.out.print("Read: ");
                     String value = reader.nextLine();
                     verifyType(getType(semanticObj.getString()), value);
@@ -450,17 +461,17 @@ public class Parser
         }
     }
 
-    public void writeStmt(Boolean bool)
+    public void writeStmt(Condition condition, int stmtType)
     {
         switch (token.get(0).getTag()) {
             case Tag.WRITE:
                 eat(Tag.WRITE, "writeStmt");
                 eat(Tag.PAR_OPEN, "writeStmt");
-                writable();
+                writable(stmtType);
                 pop();
                 eat(Tag.PAR_CLOSE, "writeStmt");
 
-                if (bool)
+                if (condition.evaluate())
                     if (semanticObj.getType() == Type.ID)
                         System.out.println("Write: " + getValue(semanticObj.getString()));
                     else
@@ -477,7 +488,7 @@ public class Parser
         }
     }
 
-    public void writable()
+    public void writable(int stmtType)
     {
         switch (token.get(0).getTag()) {
             case Tag.CONST_ZERO:
@@ -487,7 +498,7 @@ public class Parser
             case Tag.LITERAL:
             case Tag.PAR_OPEN:
             case Tag.SUBTRACT:
-                simpleExpr();
+                simpleExpr(stmtType);
                 pop();
                 push(new Semantic(semanticObj.getType(), semanticObj.getString(), "writable"));
                 break;
@@ -500,13 +511,13 @@ public class Parser
         }
     }
 
-    public void expression()
+    public Condition expression(int stmtType)
     {
         Semantic aux;
         int tag;
-        boolean bool;
-        int A;
-        int B;
+        boolean idA = false;
+        boolean idB = false;
+        Condition condition = null;
 
         switch (token.get(0).getTag()) {
             case Tag.CONST_ZERO:
@@ -516,7 +527,7 @@ public class Parser
             case Tag.LITERAL:
             case Tag.PAR_OPEN:
             case Tag.SUBTRACT:
-                simpleExpr();
+                simpleExpr(stmtType);
                 pop();
                 aux = semanticObj;
 
@@ -524,49 +535,15 @@ public class Parser
                     tag = token.get(0).getTag();
                     relop();
                     pop();
-                    simpleExpr();
+                    simpleExpr(stmtType);
                     pop();
 
                     if (aux.getType() == Type.ID)
-                        A = Integer.valueOf(getValue(aux.getString()));
-                    else
-                        A = aux.getInt();
+                        idA = true;
                     if (semanticObj.getType() == Type.ID)
-                        B = Integer.valueOf(getValue(semanticObj.getString()));
-                    else
-                        B = semanticObj.getInt();
+                        idB = true;
 
-                    switch (tag) {
-                        case Tag.EQUAL:
-                            bool = A == B;
-                            aux = new Semantic(Type.BOOLEAN, getBool(bool), "expression");
-                            break;
-
-                        case Tag.GREATER:
-                            bool = A > B;
-                            aux = new Semantic(Type.BOOLEAN, getBool(bool), "expression");
-                            break;
-
-                        case Tag.GREATER_EQUAL:
-                            bool = A >= B;
-                            aux = new Semantic(Type.BOOLEAN, getBool(bool), "expression");
-                            break;
-
-                        case Tag.LOWER:
-                            bool = A < B;
-                            aux = new Semantic(Type.BOOLEAN, getBool(bool), "expression");
-                            break;
-
-                        case Tag.LOWER_EQUAL:
-                            bool = A <= B;
-                            aux = new Semantic(Type.BOOLEAN, getBool(bool), "expression");
-                            break;
-
-                        case Tag.NOT_EQUAL:
-                            bool = A != B;
-                            aux = new Semantic(Type.BOOLEAN, getBool(bool), "expression");
-                            break;
-                    }
+                    condition = new Condition(aux.getString(), idA, semanticObj.getString(), idB, stmtType, tag);
                 }
                 push(new Semantic(aux.getType(), aux.getString(), "expression"));
                 break;
@@ -577,9 +554,11 @@ public class Parser
                 errorParser("expression", tags);
                 break;
         }
+
+        return condition;
     }
 
-    public void simpleExpr()
+    public void simpleExpr(int stmtType)
     {
         switch (token.get(0).getTag()) {
             case Tag.CONST_ZERO:
@@ -589,9 +568,9 @@ public class Parser
             case Tag.LITERAL:
             case Tag.PAR_OPEN:
             case Tag.SUBTRACT:
-                term();
+                term(stmtType);
                 pop();
-                simpleExprZ(semanticObj);
+                simpleExprZ(semanticObj, stmtType);
                 pop();
                 push(new Semantic(semanticObj.getType(), semanticObj.getString(), "simpleExpr"));
                 break;
@@ -604,7 +583,7 @@ public class Parser
         }
     }
 
-    public void simpleExprZ(Semantic valueA)
+    public void simpleExprZ(Semantic valueA, int stmtType)
     {
         int intValue;
         boolean boolValue;
@@ -617,7 +596,7 @@ public class Parser
             case Tag.OR:
                 addop();
                 pop();
-                term();
+                term(stmtType);
                 pop();
                 valueB = semanticObj;
 
@@ -628,13 +607,13 @@ public class Parser
                 } else
                     push(new Semantic(Type.ERROR, null, "simpleExprZ"));
 
-                simpleExprZ(aux);
+                simpleExprZ(aux, stmtType);
                 break;
 
             case Tag.SUM:
                 addop();
                 pop();
-                term();
+                term(stmtType);
                 pop();
                 valueB = semanticObj;
 
@@ -656,13 +635,13 @@ public class Parser
                 } else
                     push(new Semantic(Type.ERROR, null, "simpleExprZ"));
 
-                simpleExprZ(aux);
+                simpleExprZ(aux, stmtType);
                 break;
 
             case Tag.SUBTRACT:
                 addop();
                 pop();
-                term();
+                term(stmtType);
                 pop();
                 valueB = semanticObj;
 
@@ -684,7 +663,7 @@ public class Parser
                 } else
                     push(new Semantic(Type.ERROR, null, "simpleExprZ"));
 
-                simpleExprZ(aux);
+                simpleExprZ(aux, stmtType);
                 break;
 
             case Tag.PAR_CLOSE:
@@ -709,7 +688,7 @@ public class Parser
         }
     }
 
-    public void term()
+    public void term(int stmtType)
     {
         switch (token.get(0).getTag()) {
             case Tag.CONST_ZERO:
@@ -719,9 +698,9 @@ public class Parser
             case Tag.LITERAL:
             case Tag.PAR_OPEN:
             case Tag.SUBTRACT:
-                factorA();
+                factorA(stmtType);
                 pop();
-                termZ(semanticObj);
+                termZ(semanticObj, stmtType);
                 pop();
                 push(new Semantic(semanticObj.getType(), semanticObj.getString(), "term"));
                 break;
@@ -734,7 +713,7 @@ public class Parser
         }
     }
 
-    public void termZ(Semantic valueA)
+    public void termZ(Semantic valueA, int stmtType)
     {
         int intValue;
         boolean boolValue;
@@ -747,7 +726,7 @@ public class Parser
             case Tag.AND:
                 mulop();
                 pop();
-                factorA();
+                factorA(stmtType);
                 pop();
                 valueB = semanticObj;
 
@@ -758,13 +737,13 @@ public class Parser
                 } else
                     push(new Semantic(Type.ERROR, null, "termZ"));
 
-                termZ(aux);
+                termZ(aux, stmtType);
                 break;
 
             case Tag.MULTIPLY:
                 mulop();
                 pop();
-                factorA();
+                factorA(stmtType);
                 pop();
                 valueB = semanticObj;
 
@@ -784,13 +763,13 @@ public class Parser
                 } else
                     push(new Semantic(Type.ERROR, null, "termZ"));
 
-                termZ(aux);
+                termZ(aux, stmtType);
                 break;
 
             case Tag.DIVIDE:
                 mulop();
                 pop();
-                factorA();
+                factorA(stmtType);
                 pop();
                 valueB = semanticObj;
 
@@ -801,7 +780,7 @@ public class Parser
                 } else
                     push(new Semantic(Type.ERROR, null, "termZ"));
 
-                termZ(aux);
+                termZ(aux, stmtType);
                 break;
 
             case Tag.OR:
@@ -830,7 +809,7 @@ public class Parser
         }
     }
 
-    public void factorA()
+    public void factorA(int stmtType)
     {
         switch (token.get(0).getTag()) {
             case Tag.CONST_ZERO:
@@ -838,14 +817,14 @@ public class Parser
             case Tag.ID:
             case Tag.LITERAL:
             case Tag.PAR_OPEN:
-                factor();
+                factor(stmtType);
                 pop();
                 push(new Semantic(semanticObj.getType(), semanticObj.getString(), "factorA"));
                 break;
 
             case Tag.NOT:
                 eat(Tag.NOT, "factorA");
-                factor();
+                factor(stmtType);
                 pop();
 
                 if (semanticObj.getType() == Type.BOOLEAN) {
@@ -857,7 +836,7 @@ public class Parser
 
             case Tag.SUBTRACT:
                 eat(Tag.SUBTRACT, "factorA");
-                factor();
+                factor(stmtType);
                 pop();
                 if (semanticObj.getType() == Type.INTEGER) {
                     Integer value = -Integer.parseInt(semanticObj.getString());
@@ -874,8 +853,10 @@ public class Parser
         }
     }
 
-    public void factor()
+    public Condition factor(int stmtType)
     {
+        Condition condition = null;
+
         switch (token.get(0).getTag()) {
             case Tag.CONST_ZERO:
             case Tag.CONST_NOT_ZERO:
@@ -893,7 +874,7 @@ public class Parser
 
             case Tag.PAR_OPEN:
                 eat(Tag.PAR_OPEN, "factor");
-                expression();
+                condition = expression(stmtType);
                 eat(Tag.PAR_CLOSE, "factor");
                 pop();
                 push(new Semantic(semanticObj.getType(), semanticObj.getString(), "factor"));
@@ -905,6 +886,8 @@ public class Parser
                 errorParser("factor", tags);
                 break;
         }
+
+        return condition;
     }
 
     public void relop()
