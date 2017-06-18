@@ -1,19 +1,24 @@
 package symbol;
 
-public class Token {
-	public final int tag;
+public class Token
+{
 
-	public Token(int tag) {
-		this.tag = tag;
-	}
-        
-        public int getTag() {
-                return tag;
-        }
+    public final int tag;
 
-	@Override
-	public String toString() {
-		return "" + ((char)tag);
-	}
+    public Token(int tag)
+    {
+        this.tag = tag;
+    }
+
+    public int getTag()
+    {
+        return tag;
+    }
+
+    @Override
+    public String toString()
+    {
+        return "" + ((char) tag);
+    }
 
 }
