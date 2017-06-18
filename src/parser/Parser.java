@@ -19,7 +19,7 @@ public class Parser
     private Lexer lexer;
     private ArrayList<Token> token;
     private ArrayList<Follow> followList;
-    private boolean error = false; //Se false ao final da análise, não há erro de compilação
+    public static boolean error = false; //Se false ao final da análise, não há erro de compilação
 
     Stack semanticStack = new Stack();
     Semantic semanticObj;
@@ -39,11 +39,7 @@ public class Parser
         getToken();
         program();
         Lexer.printHashtable();
-
-        if (!error)
-            System.out.println("Código compilado sem erro sintático! :D");
-        else
-            System.out.println("\nParece que há alguns erros sintáticos no código. :(");
+        printResults();
     }
 
     private void getToken()
@@ -51,10 +47,10 @@ public class Parser
         token.add(lexer.run(fileName));
     }
 
-    public void error(String name, int[] tag)
+    public void errorParser(String name, int[] tag)
     {
         //Mensagem de erro
-        System.out.print("Erro na linha " + Lexer.line + " no reconhecimento de " + name + ".\n\tToken esperado: ");
+        System.out.print("Sintático: Erro na linha " + Lexer.line + " no reconhecimento de " + name + ".\n\tToken esperado: ");
         for (int i = 0; i < tag.length; i++)
             System.out.print(Tag.getName(tag[i]) + " ");
         System.out.println("\n\tPróximo token: '" + Tag.getName(token.get(0).getTag()) + "'.");
@@ -69,8 +65,11 @@ public class Parser
 
         error = true;
 
-        if (token.get(0).getTag() == Tag.EOF)
+        if (token.get(0).getTag() == Tag.EOF) {
+            Lexer.printHashtable();
+            printResults();
             System.exit(0);
+        }
     }
 
     public void eat(int tag, String name)
@@ -80,7 +79,7 @@ public class Parser
             getToken();
         } else {
             int[] tags = {tag};
-            error(name, tags);
+            errorParser(name, tags);
         }
     }
 
@@ -106,64 +105,75 @@ public class Parser
                         eat(Tag.STOP, "program");
                     } else {
                         int[] tags = {Tag.COM, Tag.IS, Tag.ASSIGN};
-                        error("program-case-init", tags);
+                        errorParser("program-case-init", tags);
                     }
                 }
                 break;
 
             default:
                 int[] tags = {Tag.INIT};
-                error("program", tags);
+                errorParser("program", tags);
                 break;
         }
     }
 
     public void declList()
     {
+        ArrayList<String> valueList = null;
+        ArrayList<String> aux;
+
         switch (token.get(0).getTag()) {
             case Tag.ID:
-                decl();
+                valueList = decl();
                 pop();
-                semanticStack.push(new Semantic(semanticObj.getType(), null, "declList"));
+                push(new Semantic(semanticObj.getType(), null, "declList"));
                 eat(Tag.DOT_COM, "declList");
                 while (token.get(0).getTag() == Tag.ID) {
-                    decl();
+                    aux = decl();
                     pop();
-                    semanticStack.push(new Semantic(semanticObj.getType(), null, "declList"));
+                    push(new Semantic(semanticObj.getType(), null, "declList"));
                     eat(Tag.DOT_COM, "declList");
+
+                    for (int i = 0; i < aux.size(); i++)
+                        valueList.add(aux.get(i));
                 }
                 break;
 
             default:
-                semanticStack.push(new Semantic(Type.ERROR, null, "declList"));
+                push(new Semantic(Type.ERROR, null, "declList"));
                 int[] tags = {Tag.ID};
-                error("declList", tags);
+                errorParser("declList", tags);
                 break;
         }
+
+        verifyUnicity(valueList);
     }
 
-    public void decl()
+    public ArrayList<String> decl()
     {
+        ArrayList<String> valueList = null;
+
         switch (token.get(0).getTag()) {
             case Tag.ID:
-                ArrayList<String> valueList = identList();
+                valueList = identList();
                 pop();
                 eat(Tag.IS, "decl");
                 type();
                 pop();
 
                 for (int i = 0; i < valueList.size(); i++)
-                    Word.setType(valueList.get(i), semanticObj.getType());
+                    setType(valueList.get(i), semanticObj.getType());
 
-                semanticStack.push(new Semantic(Type.VOID, null, "decl"));
+                push(new Semantic(Type.VOID, null, "decl"));
                 break;
 
             default:
-                semanticStack.push(new Semantic(Type.ERROR, null, "decl"));
+                push(new Semantic(Type.ERROR, null, "decl"));
                 int[] tags = {Tag.ID};
-                error("decl", tags);
+                errorParser("decl", tags);
                 break;
         }
+        return valueList;
     }
 
     public ArrayList<String> identList()
@@ -181,13 +191,13 @@ public class Parser
                     pop();
                     valueList.add(semanticObj.getString());
                 }
-                semanticStack.push(new Semantic(Type.VOID, null, "identList"));
+                push(new Semantic(Type.VOID, null, "identList"));
                 break;
 
             default:
-                semanticStack.push(new Semantic(Type.ERROR, null, "identList"));
+                push(new Semantic(Type.ERROR, null, "identList"));
                 int[] tags = {Tag.ID};
-                error("identList", tags);
+                errorParser("identList", tags);
                 break;
         }
         return valueList;
@@ -197,19 +207,19 @@ public class Parser
     {
         switch (token.get(0).getTag()) {
             case Tag.INTEGER:
-                semanticStack.push(new Semantic(Type.INTEGER, null, "type"));
+                push(new Semantic(Type.INTEGER, null, "type"));
                 eat(Tag.INTEGER, "type");
                 break;
 
             case Tag.STRING:
-                semanticStack.push(new Semantic(Type.STRING, null, "type"));
+                push(new Semantic(Type.STRING, null, "type"));
                 eat(Tag.STRING, "type");
                 break;
 
             default:
-                semanticStack.push(new Semantic(Type.ERROR, null, "type"));
+                push(new Semantic(Type.ERROR, null, "type"));
                 int[] tags = {Tag.INTEGER, Tag.STRING};
-                error("type", tags);
+                errorParser("type", tags);
                 break;
         }
     }
@@ -224,20 +234,20 @@ public class Parser
             case Tag.WRITE:
                 stmt();
                 pop();
-                semanticStack.push(new Semantic(semanticObj.getType(), null, "stmtList"));
+                push(new Semantic(semanticObj.getType(), null, "stmtList"));
                 eat(Tag.DOT_COM, "stmtList");
                 while (token.get(0).getTag() == Tag.ID || token.get(0).getTag() == Tag.DO || token.get(0).getTag() == Tag.IF || token.get(0).getTag() == Tag.READ || token.get(0).getTag() == Tag.WRITE) {
                     stmt();
                     pop();
-                    semanticStack.push(new Semantic(semanticObj.getType(), null, "stmtList"));
+                    push(new Semantic(semanticObj.getType(), null, "stmtList"));
                     eat(Tag.DOT_COM, "stmtList");
                 }
                 break;
 
             default:
-                semanticStack.push(new Semantic(Type.ERROR, null, "stmtList"));
+                push(new Semantic(Type.ERROR, null, "stmtList"));
                 int[] tags = {Tag.ID, Tag.DO, Tag.IF, Tag.READ, Tag.WRITE};
-                error("stmtList", tags);
+                errorParser("stmtList", tags);
                 break;
         }
     }
@@ -248,37 +258,37 @@ public class Parser
             case Tag.ID:
                 assignStmt();
                 pop();
-                semanticStack.push(new Semantic(semanticObj.getType(), null, "stmt"));
+                push(new Semantic(semanticObj.getType(), null, "stmt"));
                 break;
 
             case Tag.IF:
                 ifStmt();
                 pop();
-                semanticStack.push(new Semantic(semanticObj.getType(), null, "stmt"));
+                push(new Semantic(semanticObj.getType(), null, "stmt"));
                 break;
 
             case Tag.DO:
                 doStmt();
                 pop();
-                semanticStack.push(new Semantic(semanticObj.getType(), null, "stmt"));
+                push(new Semantic(semanticObj.getType(), null, "stmt"));
                 break;
 
             case Tag.READ:
                 readStmt();
                 pop();
-                semanticStack.push(new Semantic(semanticObj.getType(), null, "stmt"));
+                push(new Semantic(semanticObj.getType(), null, "stmt"));
                 break;
 
             case Tag.WRITE:
                 writeStmt();
                 pop();
-                semanticStack.push(new Semantic(semanticObj.getType(), null, "stmt"));
+                push(new Semantic(semanticObj.getType(), null, "stmt"));
                 break;
 
             default:
-                semanticStack.push(new Semantic(Type.ERROR, null, "stmt"));
+                push(new Semantic(Type.ERROR, null, "stmt"));
                 int[] tags = {Tag.ID, Tag.IF, Tag.DO, Tag.READ, Tag.WRITE};
-                error("stmt", tags);
+                errorParser("stmt", tags);
                 break;
         }
     }
@@ -294,14 +304,14 @@ public class Parser
                 eat(Tag.ASSIGN, "assignStmt");
                 simpleExpr();
                 pop();
-                Word.setValue(value, semanticObj.getString());
-                semanticStack.push(new Semantic(Type.VOID, null, "assignStmt")); //TO-DO: Considerar tipo
+                setValue(value, semanticObj.getString());
+                push(new Semantic(Type.VOID, null, "assignStmt")); //TO-DO: Considerar tipo
                 break;
 
             default:
-                semanticStack.push(new Semantic(Type.ERROR, null, "assignStmt"));
+                push(new Semantic(Type.ERROR, null, "assignStmt"));
                 int[] tags = {Tag.ID};
-                error("assignStmt", tags);
+                errorParser("assignStmt", tags);
                 break;
         }
     }
@@ -326,13 +336,13 @@ public class Parser
                     pop(); //TO-DO: Considerar condição do if
                     eat(Tag.END, "ifStmt");
                 }
-                semanticStack.push(new Semantic(Type.VOID, semanticObj.getString(), "ifStmt")); //TO-DO: Considerar condição do if
+                push(new Semantic(Type.VOID, semanticObj.getString(), "ifStmt")); //TO-DO: Considerar condição do if
                 break;
 
             default:
-                semanticStack.push(new Semantic(Type.ERROR, null, "ifStmt"));
+                push(new Semantic(Type.ERROR, null, "ifStmt"));
                 int[] tags = {Tag.IF};
-                error("ifStmt", tags);
+                errorParser("ifStmt", tags);
                 break;
         }
     }
@@ -349,13 +359,13 @@ public class Parser
             case Tag.SUBTRACT:
                 expression();
                 pop();
-                semanticStack.push(new Semantic(semanticObj.getType(), semanticObj.getString(), "condition"));
+                push(new Semantic(semanticObj.getType(), semanticObj.getString(), "condition"));
                 break;
 
             default:
-                semanticStack.push(new Semantic(Type.ERROR, null, "condition"));
+                push(new Semantic(Type.ERROR, null, "condition"));
                 int[] tags = {Tag.CONST_ZERO, Tag.CONST_NOT_ZERO, Tag.ID, Tag.NOT, Tag.QUOTE, Tag.PAR_OPEN, Tag.SUBTRACT};
-                error("condition", tags);
+                errorParser("condition", tags);
                 break;
         }
     }
@@ -375,15 +385,15 @@ public class Parser
                 returnB = semanticObj;
 
                 if (returnA.getType() == Type.VOID && returnB.getType() == Type.VOID)
-                    semanticStack.push(new Semantic(Type.VOID, null, "doStmt"));
+                    push(new Semantic(Type.VOID, null, "doStmt"));
                 else
-                    semanticStack.push(new Semantic(Type.ERROR, null, "doStmt"));
+                    push(new Semantic(Type.ERROR, null, "doStmt"));
                 break;
 
             default:
-                semanticStack.push(new Semantic(Type.ERROR, null, "doStmt"));
+                push(new Semantic(Type.ERROR, null, "doStmt"));
                 int[] tags = {Tag.DO};
-                error("doStmt", tags);
+                errorParser("doStmt", tags);
                 break;
         }
     }
@@ -398,15 +408,15 @@ public class Parser
                 eat(Tag.PAR_CLOSE, "doSuffix");
                 pop();
                 if (semanticObj.getType() == Type.BOOLEAN)
-                    semanticStack.push(new Semantic(Type.VOID, null, "doSuffix"));
+                    push(new Semantic(Type.VOID, null, "doSuffix"));
                 else
-                    semanticStack.push(new Semantic(Type.ERROR, null, "doSuffix"));
+                    push(new Semantic(Type.ERROR, null, "doSuffix"));
                 break;
 
             default:
-                semanticStack.push(new Semantic(Type.ERROR, null, "doSuffix"));
+                push(new Semantic(Type.ERROR, null, "doSuffix"));
                 int[] tags = {Tag.WHILE};
-                error("doSuffix", tags);
+                errorParser("doSuffix", tags);
                 break;
         }
     }
@@ -423,14 +433,15 @@ public class Parser
 
                 System.out.print("Read: ");
                 String value = reader.nextLine();
-                Word.setValue(semanticObj.getString(), value);
-                semanticStack.push(new Semantic(Type.VOID, null, "readStmt"));
+                verifyType(getType(semanticObj.getString()), value);
+                setValue(semanticObj.getString(), value);
+                push(new Semantic(Type.VOID, null, "readStmt"));
                 break;
 
             default:
-                semanticStack.push(new Semantic(Type.ERROR, null, "readStmt"));
+                push(new Semantic(Type.ERROR, null, "readStmt"));
                 int[] tags = {Tag.READ};
-                error("readStmt", tags);
+                errorParser("readStmt", tags);
                 break;
         }
     }
@@ -446,17 +457,17 @@ public class Parser
                 eat(Tag.PAR_CLOSE, "writeStmt");
 
                 if (semanticObj.getType() == Type.ID)
-                    System.out.println("Write: " + Word.getValue(semanticObj.getString()));
+                    System.out.println("Write: " + getValue(semanticObj.getString()));
                 else
                     System.out.println("Write: " + semanticObj.getString());
 
-                semanticStack.push(new Semantic(Type.VOID, null, "writeStmt"));
+                push(new Semantic(Type.VOID, null, "writeStmt"));
                 break;
 
             default:
-                semanticStack.push(new Semantic(Type.ERROR, null, "writeStmt"));
+                push(new Semantic(Type.ERROR, null, "writeStmt"));
                 int[] tags = {Tag.WRITE};
-                error("writeStmt", tags);
+                errorParser("writeStmt", tags);
                 break;
         }
     }
@@ -473,13 +484,13 @@ public class Parser
             case Tag.SUBTRACT:
                 simpleExpr();
                 pop();
-                semanticStack.push(new Semantic(semanticObj.getType(), semanticObj.getString(), "writable"));
+                push(new Semantic(semanticObj.getType(), semanticObj.getString(), "writable"));
                 break;
 
             default:
-                semanticStack.push(new Semantic(Type.ERROR, null, "writable"));
+                push(new Semantic(Type.ERROR, null, "writable"));
                 int[] tags = {Tag.CONST_ZERO, Tag.CONST_NOT_ZERO, Tag.ID, Tag.NOT, Tag.QUOTE, Tag.PAR_OPEN, Tag.SUBTRACT};
-                error("writable", tags);
+                errorParser("writable", tags);
                 break;
         }
     }
@@ -561,13 +572,13 @@ public class Parser
                             break;
                     }
                 }
-                semanticStack.push(new Semantic(aux.getType(), aux.getString(), "expression"));
+                push(new Semantic(aux.getType(), aux.getString(), "expression"));
                 break;
 
             default:
-                semanticStack.push(new Semantic(Type.ERROR, null, "expression"));
+                push(new Semantic(Type.ERROR, null, "expression"));
                 int[] tags = {Tag.CONST_ZERO, Tag.CONST_NOT_ZERO, Tag.ID, Tag.NOT, Tag.QUOTE, Tag.PAR_OPEN, Tag.SUBTRACT};
-                error("expression", tags);
+                errorParser("expression", tags);
                 break;
         }
     }
@@ -586,13 +597,13 @@ public class Parser
                 pop();
                 simpleExprZ(semanticObj);
                 pop();
-                semanticStack.push(new Semantic(semanticObj.getType(), semanticObj.getString(), "simpleExpr"));
+                push(new Semantic(semanticObj.getType(), semanticObj.getString(), "simpleExpr"));
                 break;
 
             default:
-                semanticStack.push(new Semantic(Type.ERROR, null, "simpleExpr"));
+                push(new Semantic(Type.ERROR, null, "simpleExpr"));
                 int[] tags = {Tag.CONST_ZERO, Tag.CONST_NOT_ZERO, Tag.ID, Tag.NOT, Tag.QUOTE, Tag.PAR_OPEN, Tag.SUBTRACT};
-                error("simpleExpr", tags);
+                errorParser("simpleExpr", tags);
                 break;
         }
     }
@@ -617,9 +628,9 @@ public class Parser
                 if (valueA.getType() == Type.BOOLEAN && valueB.getType() == Type.BOOLEAN) {
                     boolValue = Boolean.getBoolean(valueA.getString()) || Boolean.getBoolean(valueB.getString());
                     aux = new Semantic(Type.BOOLEAN, getBool(boolValue), "simpleExprZ");
-                    semanticStack.push(aux);
+                    push(aux);
                 } else
-                    semanticStack.push(new Semantic(Type.ERROR, null, "simpleExprZ"));
+                    push(new Semantic(Type.ERROR, null, "simpleExprZ"));
 
                 simpleExprZ(aux);
                 break;
@@ -631,21 +642,23 @@ public class Parser
                 pop();
                 valueB = semanticObj;
 
-                if (valueA.getType() == Type.ID)
-                    A = Word.getValue(valueA.getString());
-                else if (valueA.getType() == Type.INTEGER)
-                    A = valueA.getString();
-                if (valueB.getType() == Type.ID)
-                    B = Word.getValue(valueB.getString());
-                else if (valueB.getType() == Type.INTEGER)
-                    B = valueB.getString();
+                if (!error()) {
+                    if (valueA.getType() == Type.ID)
+                        A = getValue(valueA.getString());
+                    else if (valueA.getType() == Type.INTEGER)
+                        A = valueA.getString();
+                    if (valueB.getType() == Type.ID)
+                        B = getValue(valueB.getString());
+                    else if (valueB.getType() == Type.INTEGER)
+                        B = valueB.getString();
+                }
 
                 if (A != null && B != null) {
                     intValue = Integer.valueOf(A) + Integer.valueOf(B);
                     aux = new Semantic(Type.INTEGER, String.valueOf(intValue), "simpleExprZ");
-                    semanticStack.push(aux);
+                    push(aux);
                 } else
-                    semanticStack.push(new Semantic(Type.ERROR, null, "simpleExprZ"));
+                    push(new Semantic(Type.ERROR, null, "simpleExprZ"));
 
                 simpleExprZ(aux);
                 break;
@@ -657,21 +670,23 @@ public class Parser
                 pop();
                 valueB = semanticObj;
 
-                if (valueA.getType() == Type.ID)
-                    A = Word.getValue(valueA.getString());
-                else if (valueA.getType() == Type.INTEGER)
-                    A = valueA.getString();
-                if (valueB.getType() == Type.ID)
-                    B = Word.getValue(valueB.getString());
-                else if (valueB.getType() == Type.INTEGER)
-                    B = valueB.getString();
+                if (!error()) {
+                    if (valueA.getType() == Type.ID)
+                        A = getValue(valueA.getString());
+                    else if (valueA.getType() == Type.INTEGER)
+                        A = valueA.getString();
+                    if (valueB.getType() == Type.ID)
+                        B = getValue(valueB.getString());
+                    else if (valueB.getType() == Type.INTEGER)
+                        B = valueB.getString();
+                }
 
                 if (A != null && B != null) {
                     intValue = Integer.valueOf(A) - Integer.valueOf(B);
                     aux = new Semantic(Type.INTEGER, String.valueOf(intValue), "simpleExprZ");
-                    semanticStack.push(aux);
+                    push(aux);
                 } else
-                    semanticStack.push(new Semantic(Type.ERROR, null, "simpleExprZ"));
+                    push(new Semantic(Type.ERROR, null, "simpleExprZ"));
 
                 simpleExprZ(aux);
                 break;
@@ -684,13 +699,16 @@ public class Parser
             case Tag.LOWER_EQUAL:
             case Tag.NOT_EQUAL:
             case Tag.DOT_COM:
-                semanticStack.push(new Semantic(valueA.getType(), valueA.getString(), "simpleExprZ"));
+                if (valueA != null)
+                    push(new Semantic(valueA.getType(), valueA.getString(), "simpleExprZ"));
+                else
+                    push(new Semantic(Type.ERROR, null, "simpleExprZ"));
                 break;
 
             default:
-                semanticStack.push(new Semantic(Type.ERROR, null, "simpleExprZ"));
+                push(new Semantic(Type.ERROR, null, "simpleExprZ"));
                 int[] tags = {Tag.OR, Tag.SUM, Tag.SUBTRACT, Tag.PAR_CLOSE, Tag.EQUAL, Tag.GREATER, Tag.GREATER_EQUAL, Tag.LOWER, Tag.LOWER_EQUAL, Tag.NOT_EQUAL, Tag.DOT_COM};
-                error("simpleExprZ", tags);
+                errorParser("simpleExprZ", tags);
                 break;
         }
     }
@@ -709,13 +727,13 @@ public class Parser
                 pop();
                 termZ(semanticObj);
                 pop();
-                semanticStack.push(new Semantic(semanticObj.getType(), semanticObj.getString(), "term"));
+                push(new Semantic(semanticObj.getType(), semanticObj.getString(), "term"));
                 break;
 
             default:
-                semanticStack.push(new Semantic(Type.ERROR, null, "term"));
+                push(new Semantic(Type.ERROR, null, "term"));
                 int[] tags = {Tag.CONST_ZERO, Tag.CONST_NOT_ZERO, Tag.ID, Tag.NOT, Tag.QUOTE, Tag.PAR_OPEN, Tag.SUBTRACT};
-                error("term", tags);
+                errorParser("term", tags);
                 break;
         }
     }
@@ -737,12 +755,12 @@ public class Parser
                 pop();
                 valueB = semanticObj;
 
-                if (valueA.getType() == Type.BOOLEAN && valueB.getType() == Type.BOOLEAN) {
+                if (!error() && valueA.getType() == Type.BOOLEAN && valueB.getType() == Type.BOOLEAN) {
                     boolValue = Boolean.getBoolean(valueA.getString()) && Boolean.getBoolean(valueB.getString());
                     aux = new Semantic(Type.BOOLEAN, getBool(boolValue), "termZ");
-                    semanticStack.push(aux);
+                    push(aux);
                 } else
-                    semanticStack.push(new Semantic(Type.ERROR, null, "termZ"));
+                    push(new Semantic(Type.ERROR, null, "termZ"));
 
                 termZ(aux);
                 break;
@@ -755,20 +773,20 @@ public class Parser
                 valueB = semanticObj;
 
                 if (valueA.getType() == Type.ID)
-                    A = Word.getValue(valueA.getString());
+                    A = getValue(valueA.getString());
                 else if (valueA.getType() == Type.INTEGER)
                     A = valueA.getString();
                 if (valueB.getType() == Type.ID)
-                    B = Word.getValue(valueB.getString());
+                    B = getValue(valueB.getString());
                 else if (valueB.getType() == Type.INTEGER)
                     B = valueB.getString();
 
                 if (A != null && B != null) {
                     intValue = Integer.valueOf(A) * Integer.valueOf(B);
                     aux = new Semantic(Type.INTEGER, String.valueOf(intValue), "termZ");
-                    semanticStack.push(aux);
+                    push(aux);
                 } else
-                    semanticStack.push(new Semantic(Type.ERROR, null, "termZ"));
+                    push(new Semantic(Type.ERROR, null, "termZ"));
 
                 termZ(aux);
                 break;
@@ -780,12 +798,12 @@ public class Parser
                 pop();
                 valueB = semanticObj;
 
-                if (valueA.getType() == Type.INTEGER && valueB.getType() == Type.INTEGER) {
+                if (!error() && valueA.getType() == Type.INTEGER && valueB.getType() == Type.INTEGER) {
                     intValue = valueA.getInt() / valueB.getInt();
                     aux = new Semantic(Type.INTEGER, String.valueOf(intValue), "termZ");
-                    semanticStack.push(aux);
+                    push(aux);
                 } else
-                    semanticStack.push(new Semantic(Type.ERROR, null, "termZ"));
+                    push(new Semantic(Type.ERROR, null, "termZ"));
 
                 termZ(aux);
                 break;
@@ -801,14 +819,17 @@ public class Parser
             case Tag.LOWER_EQUAL:
             case Tag.NOT_EQUAL:
             case Tag.DOT_COM:
-                semanticStack.push(new Semantic(valueA.getType(), valueA.getString(), "termZ"));
+                if (valueA != null)
+                    push(new Semantic(valueA.getType(), valueA.getString(), "termZ"));
+                else
+                    push(new Semantic(Type.ERROR, null, "termZ"));
                 break;
 
             default:
-                semanticStack.push(new Semantic(Type.ERROR, null, "termZ"));
+                push(new Semantic(Type.ERROR, null, "termZ"));
                 int[] tags = {Tag.AND, Tag.MULTIPLY, Tag.DIVIDE, Tag.OR, Tag.PAR_CLOSE, Tag.SUM, Tag.SUBTRACT, Tag.EQUAL, Tag.GREATER, Tag.GREATER_EQUAL, Tag.LOWER, Tag.LOWER_EQUAL, Tag.NOT_EQUAL,
                     Tag.DOT_COM};
-                error("termZ", tags);
+                errorParser("termZ", tags);
                 break;
         }
     }
@@ -823,7 +844,7 @@ public class Parser
             case Tag.PAR_OPEN:
                 factor();
                 pop();
-                semanticStack.push(new Semantic(semanticObj.getType(), semanticObj.getString(), "factorA"));
+                push(new Semantic(semanticObj.getType(), semanticObj.getString(), "factorA"));
                 break;
 
             case Tag.NOT:
@@ -833,9 +854,9 @@ public class Parser
 
                 if (semanticObj.getType() == Type.BOOLEAN) {
                     boolean value = !Boolean.getBoolean(semanticObj.getString());
-                    semanticStack.push(new Semantic(semanticObj.getType(), getBool(value), "factorA"));
+                    push(new Semantic(semanticObj.getType(), getBool(value), "factorA"));
                 } else
-                    semanticStack.push(new Semantic(Type.ERROR, null, "factor"));
+                    push(new Semantic(Type.ERROR, null, "factor"));
                 break;
 
             case Tag.SUBTRACT:
@@ -844,15 +865,15 @@ public class Parser
                 pop();
                 if (semanticObj.getType() == Type.INTEGER) {
                     Integer value = -Integer.parseInt(semanticObj.getString());
-                    semanticStack.push(new Semantic(semanticObj.getType(), value.toString(), "factorA"));
+                    push(new Semantic(semanticObj.getType(), value.toString(), "factorA"));
                 } else
-                    semanticStack.push(new Semantic(Type.ERROR, null, "factorA"));
+                    push(new Semantic(Type.ERROR, null, "factorA"));
                 break;
 
             default:
-                semanticStack.push(new Semantic(Type.ERROR, null, "factorA"));
+                push(new Semantic(Type.ERROR, null, "factorA"));
                 int[] tags = {Tag.CONST_ZERO, Tag.CONST_NOT_ZERO, Tag.ID, Tag.QUOTE, Tag.PAR_OPEN, Tag.NOT, Tag.SUBTRACT};
-                error("factorA", tags);
+                errorParser("factorA", tags);
                 break;
         }
     }
@@ -865,13 +886,13 @@ public class Parser
             case Tag.QUOTE:
                 constant();
                 pop();
-                semanticStack.push(new Semantic(semanticObj.getType(), semanticObj.getString(), "factor"));
+                push(new Semantic(semanticObj.getType(), semanticObj.getString(), "factor"));
                 break;
 
             case Tag.ID:
                 identifier();
                 pop();
-                semanticStack.push(new Semantic(semanticObj.getType(), semanticObj.getString(), "factor"));
+                push(new Semantic(semanticObj.getType(), semanticObj.getString(), "factor"));
                 break;
 
             case Tag.PAR_OPEN:
@@ -879,13 +900,13 @@ public class Parser
                 expression();
                 eat(Tag.PAR_CLOSE, "factor");
                 pop();
-                semanticStack.push(new Semantic(semanticObj.getType(), semanticObj.getString(), "factor"));
+                push(new Semantic(semanticObj.getType(), semanticObj.getString(), "factor"));
                 break;
 
             default:
-                semanticStack.push(new Semantic(Type.ERROR, null, "factor"));
+                push(new Semantic(Type.ERROR, null, "factor"));
                 int[] tags = {Tag.CONST_ZERO, Tag.CONST_NOT_ZERO, Tag.QUOTE, Tag.ID, Tag.PAR_OPEN};
-                error("factor", tags);
+                errorParser("factor", tags);
                 break;
         }
     }
@@ -894,39 +915,39 @@ public class Parser
     {
         switch (token.get(0).getTag()) {
             case Tag.EQUAL:
-                semanticStack.push(new Semantic(Type.VOID, String.valueOf(Tag.EQUAL), "relop"));
+                push(new Semantic(Type.VOID, String.valueOf(Tag.EQUAL), "relop"));
                 eat(Tag.EQUAL, "relop");
                 break;
 
             case Tag.GREATER:
-                semanticStack.push(new Semantic(Type.VOID, String.valueOf(Tag.GREATER), "relop"));
+                push(new Semantic(Type.VOID, String.valueOf(Tag.GREATER), "relop"));
                 eat(Tag.GREATER, "relop");
                 break;
 
             case Tag.GREATER_EQUAL:
-                semanticStack.push(new Semantic(Type.VOID, String.valueOf(Tag.GREATER_EQUAL), "relop"));
+                push(new Semantic(Type.VOID, String.valueOf(Tag.GREATER_EQUAL), "relop"));
                 eat(Tag.GREATER_EQUAL, "relop");
                 break;
 
             case Tag.LOWER:
-                semanticStack.push(new Semantic(Type.VOID, String.valueOf(Tag.LOWER), "relop"));
+                push(new Semantic(Type.VOID, String.valueOf(Tag.LOWER), "relop"));
                 eat(Tag.LOWER, "relop");
                 break;
 
             case Tag.LOWER_EQUAL:
-                semanticStack.push(new Semantic(Type.VOID, String.valueOf(Tag.LOWER_EQUAL), "relop"));
+                push(new Semantic(Type.VOID, String.valueOf(Tag.LOWER_EQUAL), "relop"));
                 eat(Tag.LOWER_EQUAL, "relop");
                 break;
 
             case Tag.NOT_EQUAL:
-                semanticStack.push(new Semantic(Type.VOID, String.valueOf(Tag.NOT_EQUAL), "relop"));
+                push(new Semantic(Type.VOID, String.valueOf(Tag.NOT_EQUAL), "relop"));
                 eat(Tag.NOT_EQUAL, "relop");
                 break;
 
             default:
-                semanticStack.push(new Semantic(Type.ERROR, null, "relop"));
+                push(new Semantic(Type.ERROR, null, "relop"));
                 int[] tags = {Tag.EQUAL, Tag.GREATER, Tag.GREATER_EQUAL, Tag.LOWER, Tag.LOWER_EQUAL, Tag.NOT_EQUAL};
-                error("relop", tags);
+                errorParser("relop", tags);
                 break;
         }
     }
@@ -935,24 +956,24 @@ public class Parser
     {
         switch (token.get(0).getTag()) {
             case Tag.OR:
-                semanticStack.push(new Semantic(Type.VOID, String.valueOf(Tag.OR), "addop"));
+                push(new Semantic(Type.VOID, String.valueOf(Tag.OR), "addop"));
                 eat(Tag.OR, "addop");
                 break;
 
             case Tag.SUM:
-                semanticStack.push(new Semantic(Type.VOID, String.valueOf(Tag.SUM), "addop"));
+                push(new Semantic(Type.VOID, String.valueOf(Tag.SUM), "addop"));
                 eat(Tag.SUM, "addop");
                 break;
 
             case Tag.SUBTRACT:
-                semanticStack.push(new Semantic(Type.VOID, String.valueOf(Tag.SUBTRACT), "addop"));
+                push(new Semantic(Type.VOID, String.valueOf(Tag.SUBTRACT), "addop"));
                 eat(Tag.SUBTRACT, "addop");
                 break;
 
             default:
-                semanticStack.push(new Semantic(Type.ERROR, null, "addop"));
+                push(new Semantic(Type.ERROR, null, "addop"));
                 int[] tags = {Tag.OR, Tag.SUM, Tag.SUBTRACT};
-                error("addop", tags);
+                errorParser("addop", tags);
                 break;
         }
     }
@@ -961,24 +982,24 @@ public class Parser
     {
         switch (token.get(0).getTag()) {
             case Tag.AND:
-                semanticStack.push(new Semantic(Type.VOID, String.valueOf(Tag.AND), "mulop"));
+                push(new Semantic(Type.VOID, String.valueOf(Tag.AND), "mulop"));
                 eat(Tag.AND, "mulop");
                 break;
 
             case Tag.MULTIPLY:
-                semanticStack.push(new Semantic(Type.VOID, String.valueOf(Tag.MULTIPLY), "mulop"));
+                push(new Semantic(Type.VOID, String.valueOf(Tag.MULTIPLY), "mulop"));
                 eat(Tag.MULTIPLY, "mulop");
                 break;
 
             case Tag.DIVIDE:
-                semanticStack.push(new Semantic(Type.VOID, String.valueOf(Tag.DIVIDE), "mulop"));
+                push(new Semantic(Type.VOID, String.valueOf(Tag.DIVIDE), "mulop"));
                 eat(Tag.DIVIDE, "mulop");
                 break;
 
             default:
-                semanticStack.push(new Semantic(Type.ERROR, null, "mulop"));
+                push(new Semantic(Type.ERROR, null, "mulop"));
                 int[] tags = {Tag.AND, Tag.MULTIPLY, Tag.DIVIDE};
-                error("mulop", tags);
+                errorParser("mulop", tags);
                 break;
         }
     }
@@ -990,19 +1011,19 @@ public class Parser
             case Tag.CONST_NOT_ZERO:
                 integerConst();
                 pop();
-                semanticStack.push(new Semantic(Type.INTEGER, semanticObj.getString(), "constant"));
+                push(new Semantic(Type.INTEGER, semanticObj.getString(), "constant"));
                 break;
 
             case Tag.QUOTE:
                 literal();
                 pop();
-                semanticStack.push(new Semantic(Type.STRING, semanticObj.getString(), "constant"));
+                push(new Semantic(Type.STRING, semanticObj.getString(), "constant"));
                 break;
 
             default:
-                semanticStack.push(new Semantic(Type.ERROR, null, "constant"));
+                push(new Semantic(Type.ERROR, null, "constant"));
                 int[] tags = {Tag.CONST_ZERO, Tag.CONST_NOT_ZERO, Tag.QUOTE};
-                error("constant", tags);
+                errorParser("constant", tags);
                 break;
         }
     }
@@ -1011,7 +1032,7 @@ public class Parser
     {
         switch (token.get(0).getTag()) {
             case Tag.CONST_ZERO:
-                semanticStack.push(new Semantic(Type.INTEGER, token.get(0).toString(), "integerConst"));
+                push(new Semantic(Type.INTEGER, token.get(0).toString(), "integerConst"));
                 eat(Tag.CONST_ZERO, "integerConst");
                 break;
 
@@ -1028,13 +1049,13 @@ public class Parser
                     value = value + semanticObj.getInt();
                 }
 
-                semanticStack.push(new Semantic(Type.INTEGER, value.toString(), "integerConst"));
+                push(new Semantic(Type.INTEGER, value.toString(), "integerConst"));
                 break;
 
             default:
-                semanticStack.push(new Semantic(Type.ERROR, null, "integerConst"));
+                push(new Semantic(Type.ERROR, null, "integerConst"));
                 int[] tags = {Tag.CONST_ZERO, Tag.CONST_NOT_ZERO};
-                error("integerConst", tags);
+                errorParser("integerConst", tags);
                 break;
         }
     }
@@ -1048,13 +1069,13 @@ public class Parser
                 eat(Tag.QUOTE, "literal");
 
                 pop();
-                semanticStack.push(new Semantic(Type.STRING, semanticObj.getString(), "literal"));
+                push(new Semantic(Type.STRING, semanticObj.getString(), "literal"));
                 break;
 
             default:
-                semanticStack.push(new Semantic(Type.ERROR, null, "literal"));
+                push(new Semantic(Type.ERROR, null, "literal"));
                 int[] tags = {Tag.QUOTE};
-                error("literal", tags);
+                errorParser("literal", tags);
                 break;
         }
     }
@@ -1083,14 +1104,14 @@ public class Parser
                         eat('_', "identifier");
                     }
 
-                semanticStack.push(new Semantic(Type.ID, stringValue, "identifier"));
+                push(new Semantic(Type.ID, stringValue, "identifier"));
                 break;
 
             default:
-                semanticStack.push(new Semantic(Type.ERROR, null, "identifier"));
+                push(new Semantic(Type.ERROR, null, "identifier"));
 
                 int[] tags = {Tag.ID};
-                error("identifier", tags);
+                errorParser("identifier", tags);
                 break;
         }
     }
@@ -1099,14 +1120,14 @@ public class Parser
     {
         switch (token.get(0).getTag()) {
             case Tag.ID:
-                semanticStack.push(new Semantic(Type.STRING, token.get(0).toString(), "letter"));
+                push(new Semantic(Type.STRING, token.get(0).toString(), "letter"));
                 eat(Tag.ID, "letter");
                 break;
 
             default:
-                semanticStack.push(new Semantic(Type.ERROR, null, "letter"));
+                push(new Semantic(Type.ERROR, null, "letter"));
                 int[] tags = {Tag.ID};
-                error("letter", tags);
+                errorParser("letter", tags);
                 break;
         }
     }
@@ -1116,14 +1137,14 @@ public class Parser
         switch (token.get(0).getTag()) {
             case Tag.CONST_ZERO:
             case Tag.CONST_NOT_ZERO:
-                semanticStack.push(new Semantic(Type.INTEGER, token.get(0).toString(), "digit"));
+                push(new Semantic(Type.INTEGER, token.get(0).toString(), "digit"));
                 eat(Tag.INTEGER, "digit");
                 break;
 
             default:
-                semanticStack.push(new Semantic(Type.ERROR, null, "digit"));
+                push(new Semantic(Type.ERROR, null, "digit"));
                 int[] tags = {Tag.CONST_ZERO, Tag.CONST_NOT_ZERO};
-                error("digit", tags);
+                errorParser("digit", tags);
                 break;
         }
     }
@@ -1132,14 +1153,14 @@ public class Parser
     {
         switch (token.get(0).getTag()) {
             case Tag.CONST_NOT_ZERO:
-                semanticStack.push(new Semantic(Type.INTEGER, token.get(0).toString(), "noZero"));
+                push(new Semantic(Type.INTEGER, token.get(0).toString(), "noZero"));
                 eat(Tag.CONST_NOT_ZERO, "noZero");
                 break;
 
             default:
-                semanticStack.push(new Semantic(Type.ERROR, null, "noZero"));
+                push(new Semantic(Type.ERROR, null, "noZero"));
                 int[] tags = {Tag.CONST_NOT_ZERO};
-                error("noZero", tags);
+                errorParser("noZero", tags);
                 break;
         }
     }
@@ -1147,12 +1168,12 @@ public class Parser
     public void caractere()
     {
         if (isAscii(token.get(0))) {
-            semanticStack.push(new Semantic(Type.VOID, token.get(0).toString(), "caractere"));
+            push(new Semantic(Type.VOID, token.get(0).toString(), "caractere"));
             eat(Tag.ID, "caractere");
         } else {
-            semanticStack.push(new Semantic(Type.ERROR, null, "caractere"));
+            push(new Semantic(Type.ERROR, null, "caractere"));
             int[] tags = {Tag.CONST_ASCII};
-            error("caractere", tags);
+            errorParser("caractere", tags);
         }
     }
 
@@ -1165,7 +1186,40 @@ public class Parser
 
     public void pop()
     {
-        semanticObj = (Semantic) semanticStack.pop();
+        if (!error())
+            semanticObj = (Semantic) semanticStack.pop();
+    }
+
+    public void push(Semantic semantic)
+    {
+        if (!error())
+            semanticStack.push(semantic);
+    }
+
+    public String getValue(String value)
+    {
+        if (!error())
+            return Word.getValue(value);
+        return null;
+    }
+
+    public int getType(String lexem)
+    {
+        if (!error())
+            return Word.getType(lexem);
+        return Type.ERROR;
+    }
+
+    public void setType(String lexem, int type)
+    {
+        if (!error())
+            Word.setType(lexem, type);
+    }
+
+    public void setValue(String lexem, String value)
+    {
+        if (!error())
+            Word.setValue(lexem, value);
     }
 
     public String getBool(boolean value)
@@ -1174,5 +1228,41 @@ public class Parser
             return ("true");
         else
             return ("false");
+    }
+
+    public boolean error()
+    {
+        return (Parser.error || Semantic.error);
+    }
+
+    public void verifyType(int type, String value)
+    {
+        if (type == Type.INTEGER)
+            try {
+                int number = Integer.parseInt(value);
+            } catch (Exception e) {
+                Semantic.errorType("INTEGER", "STRING");
+            }
+    }
+
+    public void verifyUnicity(ArrayList<String> list)
+    {
+        for (int i = 0; i < list.size(); i++)
+            for (int j = i + 1; j < list.size(); j++)
+                if (list.get(i).equals(list.get(j)))
+                    Semantic.errorUnicity(list.get(j));
+    }
+
+    public void printResults()
+    {
+        if (!Parser.error) {
+            System.out.println("SINTÁTICO: Código compilado com sucesso!");
+
+            if (!Semantic.error)
+                System.out.println("SEMÂNTICO: Código compilado com sucesso!");
+            else
+                System.out.println("SEMÂNTICO: Código com erro!");
+        } else
+            System.out.println("SINTÁTICO: Código com erro!");
     }
 }

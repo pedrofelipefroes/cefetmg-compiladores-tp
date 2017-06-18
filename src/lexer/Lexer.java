@@ -15,7 +15,7 @@ import symbol.*;
 public class Lexer
 {
 
-    public static int line = 1;
+    public static int line = 0;
     private char c = ' ';
     private FileReader fileReader;
     private BufferedReader bufferedReader;
@@ -88,7 +88,7 @@ public class Lexer
             String string = stringBuffer.toString();
             Word word = (Word) words.get(string.toLowerCase());
 
-            if (word != null)
+            if (word != null) 
                 return word; // word is already present in Hash Table words
 
             // word is not present in Hash Table words

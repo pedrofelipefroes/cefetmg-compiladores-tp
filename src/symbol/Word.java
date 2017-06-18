@@ -2,6 +2,7 @@ package symbol;
 
 import java.util.Hashtable;
 import lexer.Lexer;
+import parser.Parser;
 import semantic.Type;
 
 public class Word extends Token implements Comparable<Word>
@@ -69,8 +70,9 @@ public class Word extends Token implements Comparable<Word>
     {
         return value;
     }
-    
-    public int getType() {
+
+    public int getType()
+    {
         return type;
     }
 
